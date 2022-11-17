@@ -1,0 +1,10 @@
+{
+  "restartable": "rs",
+  "ignore": ["app/tests/*"],
+  "watch": ["app", "server.ts"],
+  "execMap": { "ts": "node -r ts-node/register" },
+  "ext": "ts",
+  "inspect": true,
+  "verbose": true,
+  "start": "cls || clear"
+}
