@@ -1,0 +1,11 @@
+.vscode
+/node_modules
+npm-debug.log
+/dist
+/.nyc_output
+/coverage
+Dockerfile
+docker-compose*
+.prettierrc
+.nodemon.json
+.gitignore

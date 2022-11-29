@@ -10,6 +10,7 @@
     "start": "ts-node -r dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
     "start:local": "ts-node -r dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
     "start:live": "nodemon -r  dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
+    "dockerize": "docker-compose  --env-file environments/.env.%npm_config_env% --profile %npm_config_service% up --build",
     "test": "mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
     "test:coverage": "nyc --reporter=html mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
     "lint": "eslint . tsconfig.json --fix",
