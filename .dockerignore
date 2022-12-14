@@ -9,3 +9,4 @@ docker-compose*
 .prettierrc
 .nodemon.json
 .gitignore
+.scannerwork

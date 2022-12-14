@@ -12,10 +12,12 @@
     "start:live": "nodemon -r  dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
     "dockerize": "docker-compose  --env-file environments/.env.%npm_config_env% --profile %npm_config_service% up --build",
     "test": "mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
-    "test:coverage": "nyc --reporter=html mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
+    "test:coverage": "nyc --reporter=lcov mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
+    "test:coverage:check": "nyc check-coverage --statements %npm_config_min_percentage% --branches %npm_config_min_percentage% --functions %npm_config_min_percentage% --lines %npm_config_min_percentage%",
     "lint": "eslint . tsconfig.json --fix",
     "lint-fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "sonar": "sonar-scanner"
   },
   "author": "sasensio",
   "license": "ISC",
@@ -56,7 +58,8 @@
     "mocha": "^10.1.0",
     "nodemon": "^2.0.20",
     "nyc": "^15.1.0",
-    "prettier": "^2.8.0"
+    "prettier": "^2.8.0",
+    "sonarqube-scanner": "^2.9.1"
   },
   "_moduleAliases": {
     "@models": "dist/app/models",
