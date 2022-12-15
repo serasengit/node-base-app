@@ -17,6 +17,9 @@ install_dependencies:
     paths:
       - node_modules
     policy: pull-push
+  only:
+    - merge_requests
+    - develop
 build:
   stage: build
   image: node:12-alpine
@@ -32,6 +35,9 @@ build:
     paths:
       - node_modules
     policy: pull
+  only:
+    - merge_requests
+    - develop
 test:
   stage: test
   image: node:12-alpine
@@ -50,6 +56,9 @@ test:
     paths:
       - node_modules
     policy: pull
+  only:
+    - merge_requests
+    - develop
 sonar:
   stage: sonar
   image: node:12-alpine
@@ -66,6 +75,6 @@ sonar:
     paths:
       - node_modules
     policy: pull
-  only:
-    - merge_requests
-    - main
+  rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release/ && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      when: on_success
