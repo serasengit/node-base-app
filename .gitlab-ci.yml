@@ -1,12 +1,13 @@
 stages:
-  - install
+  - dependencies
   - build
   - test
   - sonar
 variables:
   MIN_COVERAGE: 40 # set the threshold at 80%
-install_dependencies:
-  stage: install
+
+dependencies:
+  stage: dependencies
   image: node:12-alpine
   script:
     - npm install
