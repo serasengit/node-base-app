@@ -21,8 +21,8 @@ class MeteoStationService {
    */
   public async findAll(): Promise<MeteoStationDTO[]> {
     try {
-      const meteoStationsSchema: MeteoStationSchema[] = await this.meteoStationRepository.findAll();
-      return meteoStationsSchema as MeteoStationDTO[];
+      const meteoStationsSchemas: MeteoStationSchema[] = await this.meteoStationRepository.findAll();
+      return meteoStationsSchemas.map((meteoStationsSchema) => this.meteoStationMapper.toDTO(meteoStationsSchema));
     } catch (err) {
       throw err;
     }
