@@ -1,15 +1,15 @@
-import { Service } from 'typedi';
-import { MeteoStationDTO } from '@dtos/meteo-station-dto';
-import MeteoStationRepositoryImpl from '@repositories/meteo-station/meteo-station-repository-impl';
-import { MeteoStationSchema } from '@schemas/meteo-station-schema';
-import { NotFoundError } from '@api-messages/errors/not-found-error';
 import { APICode } from '@api-messages/api-messages';
+import { NotFoundError } from '@api-messages/errors/not-found-error';
+import { MeteoStationDTO } from '@dtos/meteo-station-dto';
 import { MeteoStationMapper } from '@mappers/meteo-station-mapper';
+import { MeteoStationRepository } from '@repositories/meteo-station/meteo-station-repository';
+import { MeteoStationSchema } from '@schemas/meteo-station-schema';
+import { Inject, Service } from 'typedi';
 
 @Service()
 class MeteoStationService {
   constructor(
-    private readonly meteoStationRepository: MeteoStationRepositoryImpl,
+    @Inject('meteoStationRepository') private readonly meteoStationRepository: MeteoStationRepository,
     private readonly meteoStationMapper: MeteoStationMapper
   ) {}
 

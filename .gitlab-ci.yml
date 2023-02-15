@@ -1,0 +1,81 @@
+stages:
+  - dependencies
+  - build
+  - test
+  - sonar
+variables:
+  MIN_COVERAGE: 40 # set the threshold at 80%
+
+dependencies:
+  stage: dependencies
+  image: node:12-alpine
+  script:
+    - npm install
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull-push
+  only:
+    - merge_requests
+    - develop
+build:
+  stage: build
+  image: node:12-alpine
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/dist
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull
+  only:
+    - merge_requests
+    - develop
+test:
+  stage: test
+  image: node:12-alpine
+  allow_failure: false
+  script:
+    - npm run lint
+    - npm run test:coverage
+    - npm run test:coverage:check --min_percentage=$MIN_COVERAGE
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/coverage
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull
+  only:
+    - merge_requests
+    - develop
+sonar:
+  stage: sonar
+  image: node:12-alpine
+  needs:
+    - job: test
+      artifacts: true
+  allow_failure: false
+  script:
+    - npm run sonar
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull
+  rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release/ && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      when: on_success
