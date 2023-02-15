@@ -10,14 +10,12 @@
     "start": "ts-node -r dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
     "start:local": "ts-node -r dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
     "start:live": "nodemon -r  dotenv/config server.ts dotenv_config_path=environments/.env.%npm_config_env%",
-    "dockerize": "docker-compose  --env-file environments/.env.%npm_config_env% --profile %npm_config_service% up --build",
     "test": "mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
     "test:coverage": "nyc --reporter=lcov mocha -r ts-node/register -r dotenv/config 'app/tests/**/*.ts' dotenv_config_path=environments/.env.test --timeout 100000 --exit",
     "test:coverage:check": "nyc check-coverage --statements %npm_config_min_percentage% --branches %npm_config_min_percentage% --functions %npm_config_min_percentage% --lines %npm_config_min_percentage%",
     "lint": "eslint . tsconfig.json --fix",
     "lint-fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "sonar": "sonar-scanner"
+    "format": "prettier --write ."
   },
   "author": "sasensio",
   "license": "ISC",

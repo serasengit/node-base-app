@@ -3,11 +3,13 @@ import { Router } from 'express';
 import MeteoStationController from '@controllers/meteo-station-controller';
 import { APICode, getAPIMessage, Language } from '@api-messages/api-messages';
 import { check } from 'express-validator';
+import MeteoStationRepositoryImpl from '@repositories/meteo-station/meteo-station-repository-impl';
 
 // Router
 export const meteoStationRouter = Router();
 // Dependency classes injection handled with 'typedi' library
 const meteoStationController = Container.get(MeteoStationController);
+Container.set(MeteoStationRepositoryImpl, new MeteoStationRepositoryImpl());
 
 // Find all meteo stations
 meteoStationRouter.get(`/`, (req, res) => meteoStationController.findAll(req, res));
