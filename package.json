@@ -1,7 +1,7 @@
 {
-  "name": "chg-gestor-documental-back-end",
+  "name": "node-base-app",
   "version": "1.0.0",
-  "description": "CHG Gestor Documental backend project",
+  "description": "Node base app project",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
