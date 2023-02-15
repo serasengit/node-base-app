@@ -1,0 +1,66 @@
+# Docker Compose version
+version: '3'
+
+# Service configurations
+services:
+  # Dependencies Service Configuration
+  dependencies:
+    # Profiles for this service
+    profiles: ['unit-tests', 'app']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: dependencies # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-dependencies
+    # Docker image for the dependencies service
+    image: ${DOCKER_IMAGE_NAME}-dependencies
+
+  # Unit Tests Service Configuration
+  unit-tests:
+    # Profiles for this service
+    profiles: ['unit-tests', 'app']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: unit-tests # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-unit-tests
+    # Docker image for the unit tests service
+    image: ${DOCKER_IMAGE_NAME}_unit-tests
+    # Environment file to define variables
+    env_file:
+      - environments/.env.docker
+
+  # App Service Configuration
+  app:
+    # Profiles for this service
+    profiles: ['app']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: app # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-app
+    # Docker image for the app service
+    image: ${DOCKER_IMAGE_NAME}-app
+    # Environment file to define variables
+    env_file:
+      - environments/.env.docker
+    # Port mapping from host machine to container
+    ports:
+      - '${SERVER_PORT}:${SERVER_PORT}'
+    # Health checks to ensure your Application is running correctly
+    healthcheck:
+      test: curl -s http://${SERVER_HOST}-app:${SERVER_PORT} || exit 1
+      interval: 10s
+      start_period: 10s
+      timeout: 30s
+      retries: 3
+    # Dependency declaration on both the unit tests service
+    depends_on:
+      unit-tests:
+        condition: service_completed_successfully
