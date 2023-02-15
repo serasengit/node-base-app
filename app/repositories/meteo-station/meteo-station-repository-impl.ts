@@ -1,10 +1,11 @@
+import { NotImplementedMethodError } from '@api-messages/errors/non-implemented-method-error';
+import { MeteoStationSchema } from '@schemas/meteo-station-schema';
 import { Service } from 'typedi';
 import { MeteoStationRepository } from './meteo-station-repository';
-import { MeteoStationSchema } from '@schemas/meteo-station-schema';
-import { NotImplementedMethodError } from '@api-messages/errors/non-implemented-method-error';
 
-@Service()
+@Service('meteoStationRepository')
 class MeteoStationRepositoryImpl implements MeteoStationRepository {
+  /* istanbul ignore next */
   public async exists(meteoStationSchema: MeteoStationSchema): Promise<boolean> {
     console.log(`Check meteo station ${meteoStationSchema}`);
     throw new NotImplementedMethodError();
@@ -27,16 +28,19 @@ class MeteoStationRepositoryImpl implements MeteoStationRepository {
     return { id: 1, name: 'Meteo 1', longitude: 41.646749, latitude: -0.586661 };
   }
 
+  /* istanbul ignore next */
   public async save(meteoStationSchema: MeteoStationSchema): Promise<MeteoStationSchema> {
     console.log(`Save meteo station ${meteoStationSchema}`);
     throw new NotImplementedMethodError();
   }
 
+  /* istanbul ignore next */
   public async delete(meteoStationSchema: MeteoStationSchema): Promise<MeteoStationSchema> {
     console.log(`Delete meteo station ${meteoStationSchema}`);
     throw new NotImplementedMethodError();
   }
 
+  /* istanbul ignore next */
   public async update(meteoStationSchema: MeteoStationSchema): Promise<MeteoStationSchema> {
     console.log(`Update meteo station ${meteoStationSchema}`);
     throw new NotImplementedMethodError();
