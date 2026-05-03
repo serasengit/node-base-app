@@ -17,7 +17,9 @@ It provides a clean base architecture for building REST APIs with feature-based 
 - Testing: Mocha + Chai + Chai HTTP
 - Coverage: NYC
 - Code quality: ESLint, Prettier, SonarQube
+- Security testing: OWASP ZAP
 - Containerization: Docker + Docker Compose
+- CI/CD: GitLab CI/CD
 
 ## 🗂️ Main structure
 
@@ -86,6 +88,7 @@ logs/
 docs/
 Dockerfile
 docker-compose.yml
+.gitlab-ci.yml
 package.json
 tsconfig.json
 ```
@@ -109,7 +112,10 @@ app/features/<feature>/
 - npm
 - PostgreSQL
 - Docker and Docker Compose, if running the database or services with containers
-- SonarQube Scanner, if using `npm run sonar`
+- GitLab Runner with Docker support, if using the provided GitLab CI/CD pipeline
+- SonarQube Scanner, if using `npm run sonar` locally
+
+> The GitLab pipeline uses the official `sonarsource/sonar-scanner-cli` image for SonarQube analysis, so a local SonarQube Scanner installation is only required for local analysis.
 
 ## 🌱 Environment variables
 
@@ -211,6 +217,67 @@ environments/.env.dev
 - `ENABLE_API_DOCS`  
   Enables or disables the API documentation route, including Swagger UI and OpenAPI JSON.  
   Development value: `true`.
+
+### 📋 Variables defined in `environments/.env.test`
+
+The test environment is used by automated tests, Docker Compose test profiles and the GitLab CI/CD security scan.
+
+Typical values:
+
+```env
+# Environment mode: test
+NODE_ENV=test
+
+# Server host and port configuration
+SERVER_HOST=0.0.0.0
+SERVER_PORT=3001
+HEALTHCHECK_PORT=3002
+
+# API versioning prefix
+SERVER_API=api/v1
+
+# Allowed domains for CORS (comma separated)
+DOMAIN_WHITELIST=http://localhost:8080
+
+# PostgreSQL database connection settings
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
+POSTGRES_DB=node_base_app_test
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+# Docker image and container names
+DOCKER_IMAGE_NAME=node-base-app-test
+DOCKER_CONTAINER_NAME=node-base-app-test
+
+# Code coverage thresholds (in percentage)
+MIN_COVERAGE_PERCENTAGE=90
+
+# Logging configuration
+LOG_LEVEL=debug
+LOGS_FOLDER=logs/test
+
+# Enable API documentation route (Swagger UI).
+ENABLE_API_DOCS=true
+```
+
+In GitLab CI/CD, the ZAP job loads `environments/.env.test` to dynamically build:
+
+```text
+http://app:${SERVER_PORT}/${SERVER_API}
+```
+
+With the values above, the target URL becomes:
+
+```text
+http://app:3001/api/v1
+```
+
+The healthcheck URL used inside the app container becomes:
+
+```text
+http://127.0.0.1:3002/health
+```
 
 ### Example `.env.dev`
 
@@ -516,6 +583,209 @@ Example CI/CD coverage check:
 
 ```bash
 npm run test:coverage:check -- --statements=${MIN_COVERAGE_PERCENTAGE} --lines=${MIN_COVERAGE_PERCENTAGE} --functions=${MIN_COVERAGE_PERCENTAGE} --branches=${MIN_COVERAGE_PERCENTAGE}
+```
+
+## 🔁 GitLab CI/CD pipeline
+
+The project includes a GitLab CI/CD pipeline in:
+
+```text
+.gitlab-ci.yml
+```
+
+The pipeline is organized into the following stages:
+
+```text
+dependencies -> build -> test -> sonar -> zap
+```
+
+### Pipeline stages
+
+#### `dependencies`
+
+Installs project dependencies using Node.js 20:
+
+```bash
+npm ci --include=dev
+```
+
+The job stores `node_modules/` as an artifact for downstream jobs and caches dependencies based on `package-lock.json`.
+
+#### `build`
+
+Compiles the TypeScript project:
+
+```bash
+npm run build
+```
+
+The compiled output is stored as a pipeline artifact:
+
+```text
+dist/
+```
+
+#### `test`
+
+Runs the Docker Compose test profile, including PostgreSQL, migrations and the unit test container.
+
+This stage requires Docker-in-Docker because it starts Docker Compose services inside the GitLab job.
+
+The GitLab runner must support:
+
+```toml
+[runners.docker]
+  privileged = true
+```
+
+If the runner is not privileged, jobs using `docker:dind` may fail with errors such as:
+
+```text
+Cannot connect to the Docker daemon at tcp://docker:2375
+Could not mount /sys/kernel/security
+AppArmor detection and --privileged mode might break
+```
+
+#### `sonar`
+
+Runs SonarQube static code analysis using the official SonarScanner image:
+
+```yaml
+image:
+  name: sonarsource/sonar-scanner-cli:latest
+  entrypoint: ['']
+```
+
+The scanner uses:
+
+```text
+sonar-project.properties
+```
+
+The job also downloads artifacts from the `test` stage, especially the coverage report.
+
+If the SonarQube server uses an internal corporate certificate authority, the scanner container may need the corporate CA imported into the Java truststore.
+
+Typical error when the CA is missing:
+
+```text
+certificate_unknown
+The certificate chain is not trusted
+```
+
+#### `zap`
+
+Runs OWASP ZAP baseline analysis against the containerized application.
+
+The job:
+
+1. Starts PostgreSQL with Docker Compose.
+2. Runs migrations and seeds.
+3. Starts the application container.
+4. Waits for the healthcheck endpoint.
+5. Runs `zaproxy/zap-stable` inside the same Docker Compose network.
+6. Stores ZAP reports as pipeline artifacts.
+
+The ZAP target is built dynamically from `environments/.env.test`:
+
+```bash
+export ZAP_TARGET_URL="http://app:${SERVER_PORT}/${SERVER_API}"
+```
+
+The application healthcheck URL is also built from `environments/.env.test`:
+
+```bash
+export HEALTHCHECK_URL="http://127.0.0.1:${HEALTHCHECK_PORT}/health"
+```
+
+Generated ZAP reports are uploaded from:
+
+```text
+zap-reports/
+```
+
+### Pipeline variables
+
+Some variables are safe to keep in versioned `.env` files because they are part of reproducible local/test configuration.
+
+Examples:
+
+```text
+NODE_ENV
+SERVER_HOST
+SERVER_PORT
+HEALTHCHECK_PORT
+SERVER_API
+DOMAIN_WHITELIST
+POSTGRES_HOST
+POSTGRES_PORT
+POSTGRES_DB
+POSTGRES_USER
+POSTGRES_PASSWORD
+DOCKER_IMAGE_NAME
+DOCKER_CONTAINER_NAME
+LOG_LEVEL
+LOGS_FOLDER
+ENABLE_API_DOCS
+```
+
+Sensitive, infrastructure-specific or corporate variables should be configured in GitLab, not committed to the repository.
+
+Configure them in:
+
+```text
+Project > Settings > CI/CD > Variables
+```
+
+Recommended GitLab CI/CD variables:
+
+```text
+SONAR_HOST_URL
+SONAR_TOKEN
+MIN_COVERAGE_PERCENTAGE
+```
+
+Use GitLab variable protections where appropriate:
+
+- Mark secrets as **Masked** or **Masked and hidden**.
+- Use **Protected** variables for protected branches or tags.
+- Use **File** variables for certificates such as `SONAR_CA_CERT`.
+
+### Pipeline execution rules
+
+The pipeline is intended to run on:
+
+```text
+merge_requests
+develop
+main
+```
+
+Typical behavior:
+
+- `dependencies`, `build`, `test` and `zap` run on merge requests, `develop` and `main`.
+- `sonar` runs on merge requests and `main`.
+
+### ZAP report permissions
+
+The ZAP container runs with its own internal user. The mounted report directory must be writable by that user.
+
+The pipeline creates and opens permissions for the report directory:
+
+```bash
+mkdir -p zap-reports
+chmod 777 zap-reports
+```
+
+The `-g gen.conf` option is intentionally omitted from `zap-baseline.py` to avoid writing an extra generated configuration file when it is not needed.
+
+### Recommended commit messages for CI changes
+
+```bash
+git commit -m "ci: add GitLab pipeline"
+git commit -m "ci: fix Docker Compose test and ZAP pipeline jobs"
+git commit -m "ci: fix ZAP report permissions"
+git commit -m "ci: use official SonarScanner image"
 ```
 
 ## 🧩 Main example modules
