@@ -158,7 +158,7 @@ sonar:
 # Run ZAP security analysis against the containerized application.
 zap:
   stage: zap
-  image: docker:24.0.5-cli # Use Docker CLI because this job starts the application stack with Docker Compose.
+  image: docker:24.0.5-cli
 
   # Docker-in-Docker service used to build and run the application containers.
   # The GitLab runner must be configured with privileged = true.
@@ -167,18 +167,44 @@ zap:
       alias: docker
 
   variables:
-    DOCKER_HOST: tcp://docker:2375 # Docker daemon exposed by the docker:dind service.
-    DOCKER_TLS_CERTDIR: '' # Disable Docker TLS inside the isolated CI network.
-    COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}' # Use a unique Compose project name to avoid collisions.
-    NODE_ENV: test # Runtime environment used by the application stack.
-    ZAP_TARGET_URL: 'http://app:3000/api/v1' # Application URL inside the Docker Compose network.
+    # Docker daemon exposed by the docker:dind service.
+    DOCKER_HOST: tcp://docker:2375
+
+    # Disable Docker TLS inside the isolated CI network.
+    DOCKER_TLS_CERTDIR: ''
+
+    # Use a unique Docker Compose project name to avoid collisions between concurrent pipelines.
+    COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}'
+
+    # Runtime environment used by the application stack.
+    NODE_ENV: test
 
   before_script:
-    - mkdir -p zap-reports # Create the ZAP workspace where reports will be written.
-    - docker version # Print Docker version for troubleshooting.
-    - docker compose version # Print Docker Compose version for troubleshooting.
+    # Create the local directory where ZAP reports will be stored.
+    - mkdir -p zap-reports
+
+    # Print Docker versions for troubleshooting.
+    - docker version
+    - docker compose version
 
   script:
+    # Load environment variables from the test environment file.
+    - set -a
+    - . environments/.env.test
+    - set +a
+
+    # Build the ZAP target URL using the Docker Compose service name and .env.test values.
+    # Example: http://app:3001/api/v1
+    - export ZAP_TARGET_URL="http://app:${SERVER_PORT}/${SERVER_API}"
+
+    # Build the healthcheck URL executed from inside the app container.
+    # Example: http://127.0.0.1:3002/health
+    - export HEALTHCHECK_URL="http://127.0.0.1:${HEALTHCHECK_PORT}/health"
+
+    # Print resolved URLs for pipeline visibility.
+    - echo "ZAP target URL: ${ZAP_TARGET_URL}"
+    - echo "Healthcheck URL: ${HEALTHCHECK_URL}"
+
     # Start PostgreSQL first.
     - docker compose --env-file environments/.env.test --profile app up --build -d postgres
 
@@ -192,7 +218,7 @@ zap:
     - |
       echo "Waiting for application healthcheck..."
       for i in $(seq 1 60); do
-        if docker compose --env-file environments/.env.test exec -T app curl -fsS http://127.0.0.1:3005/health; then
+        if docker compose --env-file environments/.env.test exec -T app curl -fsS "${HEALTHCHECK_URL}"; then
           echo "Application is ready."
           break
         fi
@@ -202,6 +228,7 @@ zap:
 
         if [ "$i" -eq 60 ]; then
           echo "Application did not become ready in time."
+          docker compose --env-file environments/.env.test ps
           docker compose --env-file environments/.env.test logs app
           exit 1
         fi
@@ -221,21 +248,27 @@ zap:
           -x zap_report.xml
 
   after_script:
-    - docker compose --env-file environments/.env.test logs app || true # Print app logs even when the job fails.
-    - docker compose --env-file environments/.env.test down --remove-orphans --volumes || true # Clean up containers, networks and volumes.
+    # Print application logs even if the job fails.
+    - docker compose --env-file environments/.env.test logs app || true
+
+    # Remove containers, networks and volumes created by Docker Compose.
+    - docker compose --env-file environments/.env.test down --remove-orphans --volumes || true
 
   artifacts:
+    # Always upload reports, even if ZAP finds issues or the job fails.
     when: always
     paths:
-      - zap-reports/zap_report.html # Store the HTML ZAP report.
-      - zap-reports/zap_report.xml # Store the XML ZAP report.
+      - zap-reports/zap_report.html
+      - zap-reports/zap_report.xml
     expire_in: 1 week
 
+  # Run ZAP for merge requests and the main development branches.
   only:
-    - merge_requests # Run this job for merge requests.
-    - develop # Run this job on the develop branch.
-    - main # Run this job on the main branch.
+    - merge_requests
+    - develop
+    - main
 
   needs:
-    - job: build # Ensure the project builds before running ZAP.
+    # Ensure the application builds before starting the containerized ZAP scan.
+    - job: build
       artifacts: true
