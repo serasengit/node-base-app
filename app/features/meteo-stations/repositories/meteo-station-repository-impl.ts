@@ -9,7 +9,6 @@ import {
 import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-schema';
 import Objection, { QueryBuilder, Transaction } from 'objection';
 import { Service } from 'typedi';
-
 import { MeteoStationRepository } from './meteo-station-repository';
 
 @Service('meteoStationRepository')

@@ -3,7 +3,7 @@ import { ConflictError } from '@api-messages/errors/conflict-error';
 import { NotFoundError } from '@api-messages/errors/not-found-error';
 import { QueryParams, QueryResponse } from '@core/repositories/base-repository';
 import { MeteoStationDTO } from '@features/meteo-stations/dtos/meteo-station-dto';
-import { MeteoStationRepository } from '@features/meteo-stations/repositories/meteo-station/meteo-station-repository';
+import { MeteoStationRepository } from '@features/meteo-stations/repositories/meteo-station-repository';
 import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-schema';
 import logger from 'logger/logger';
 import { transaction } from 'objection';

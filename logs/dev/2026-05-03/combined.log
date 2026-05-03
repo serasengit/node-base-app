@@ -4,3 +4,80 @@
 2026-05-03 17:29:55 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
 2026-05-03 17:33:20 [error]: Error in GET /api/v1/meteo-stations/%7B%7BmeteoStationId%7D%7D: client_error_unprocessable_entity
 2026-05-03 17:33:22 [error]: Error in GET /api/v1/meteo-stations/%7B%7BmeteoStationId%7D%7D: client_error_unprocessable_entity
+2026-05-03 17:48:17 [info]: 🚀 API running at http://0.0.0.0:3000
+2026-05-03 17:48:17 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 17:49:11 [info]: 🚀 API running at http://0.0.0.0:3000
+2026-05-03 17:49:11 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 17:49:46 [info]: 🚀 API running at http://0.0.0.0:3000
+2026-05-03 17:49:46 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 17:49:53 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Estación meteorológica no encontrada, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:50:01 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Meteo station not found, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:50:05 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Estación meteorológica no encontrada, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:51:31 [error]: Error in TranslationService.findTranslationTextByCodeAndLanguage: translation_not_found, message: , details: undefined, stack: Error
+    at TranslationService.findTranslationTextByCodeAndLanguage (C:\Workspace\node-base-app\app\features\translations\services\translation-service.ts:20:37)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async errorHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:70:20)
+2026-05-03 17:51:31 [warn]: Could not get translation of code: internal_server_error for language: es
+2026-05-03 17:51:31 [error]: Error in errorHandler: code: translation_not_found, message: , details: undefined, stack: Error
+    at TranslationService.findTranslationTextByCodeAndLanguage (C:\Workspace\node-base-app\app\features\translations\services\translation-service.ts:20:37)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async errorHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:70:20)
+2026-05-03 17:51:32 [error]: Error in TranslationService.findTranslationTextByCodeAndLanguage: translation_not_found, message: , details: undefined, stack: Error
+    at TranslationService.findTranslationTextByCodeAndLanguage (C:\Workspace\node-base-app\app\features\translations\services\translation-service.ts:20:37)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async errorHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:70:20)
+2026-05-03 17:51:32 [warn]: Could not get translation of code: internal_server_error for language: es
+2026-05-03 17:51:32 [error]: Error in errorHandler: code: translation_not_found, message: , details: undefined, stack: Error
+    at TranslationService.findTranslationTextByCodeAndLanguage (C:\Workspace\node-base-app\app\features\translations\services\translation-service.ts:20:37)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async errorHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:70:20)
+2026-05-03 17:51:34 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Estación meteorológica no encontrada, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:51:36 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Estación meteorológica no encontrada, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:51:40 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Meteo station not found, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:55:34 [info]: 🚀 API running at http://0.0.0.0:3000
+2026-05-03 17:55:34 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 17:55:35 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Meteorological station not found, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:55:40 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Estación meteorológica no encontrada, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:55:44 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Meteorological station not found, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 17:55:47 [error]: Error in GET /api/v1/meteo-sstations/2555: status: 404, message: Route not found: GET /api/v1/meteo-sstations/2555, details: undefined, stack: HttpError: Route not found: GET /api/v1/meteo-sstations/2555
+    at notFoundHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:49:8)
+    at Layer.handle [as handle_request] (C:\Workspace\node-base-app\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:328:13)
+    at C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:280:10)
+    at C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:646:15
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:265:14)
+    at C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:646:15
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\index.js:265:14)
+2026-05-03 17:55:50 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Meteorological station not found, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)

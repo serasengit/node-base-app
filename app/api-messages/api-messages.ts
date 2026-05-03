@@ -22,7 +22,8 @@ export enum APICode {
   UnknownError = 'unknown_error',
   RequiredParameter = 'required_parameter',
   MeteoStationNotFound = 'meteo_station_not_found',
-  MeteoStationAlreadyExists = 'meteo_station_already_exists'
+  MeteoStationAlreadyExists = 'meteo_station_already_exists',
+  TranslationNotFound = 'translation_not_found'
 }
 
 /**
