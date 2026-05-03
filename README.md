@@ -105,13 +105,11 @@ app/features/<feature>/
 
 ## ✅ Requirements
 
-- Node.js `18.x` or newer
+- Node.js `20.x`
 - npm
 - PostgreSQL
 - Docker and Docker Compose, if running the database or services with containers
 - SonarQube Scanner, if using `npm run sonar`
-
-> The project currently uses `@types/node` for Node.js 18. If the runtime standard is Node.js 20, update the type package accordingly.
 
 ## 🌱 Environment variables
 
@@ -436,6 +434,27 @@ npm run knex:seed:run --env=dev
 - `npm run test:coverage:check`  
   Checks coverage thresholds using NYC.
 
+Coverage thresholds can be passed as arguments to NYC:
+
+```bash
+npm run test:coverage:check -- --statements=80 --lines=80 --functions=80 --branches=80
+```
+
+This command fails if the generated coverage report does not meet the configured minimum percentages.
+
+In GitLab CI/CD, the same command can be parameterized with an environment variable:
+
+```bash
+npm run test:coverage:check -- --statements=${MIN_COVERAGE_PERCENTAGE} --lines=${MIN_COVERAGE_PERCENTAGE} --functions=${MIN_COVERAGE_PERCENTAGE} --branches=${MIN_COVERAGE_PERCENTAGE}
+```
+
+Example GitLab variable:
+
+```yaml
+variables:
+  MIN_COVERAGE_PERCENTAGE: '80'
+```
+
 ## 🧪 Testing
 
 Test files follow this pattern:
@@ -459,7 +478,7 @@ npm run test:coverage
 Check coverage thresholds:
 
 ```bash
-npm run test:coverage:check
+npm run test:coverage:check -- --statements=80 --lines=80 --functions=80 --branches=80
 ```
 
 The project is prepared to support integration-style tests against the application stack and database.
@@ -481,6 +500,22 @@ app/docs/**
 app/**/tests/**
 app/**/*.spec.ts
 app/test-setup.ts
+```
+
+The project does not hardcode minimum coverage thresholds in `package.json`.
+
+Thresholds are provided at execution time, which allows local development and CI/CD pipelines to use different minimum percentages.
+
+Example local coverage check:
+
+```bash
+npm run test:coverage:check -- --statements=80 --lines=80 --functions=80 --branches=80
+```
+
+Example CI/CD coverage check:
+
+```bash
+npm run test:coverage:check -- --statements=${MIN_COVERAGE_PERCENTAGE} --lines=${MIN_COVERAGE_PERCENTAGE} --functions=${MIN_COVERAGE_PERCENTAGE} --branches=${MIN_COVERAGE_PERCENTAGE}
 ```
 
 ## 🧩 Main example modules
@@ -648,6 +683,18 @@ npm run knex:seed:run --env=dev
 
 ```bash
 npm run test
+```
+
+For coverage:
+
+```bash
+npm run test:coverage
+```
+
+For coverage threshold validation:
+
+```bash
+npm run test:coverage:check -- --statements=80 --lines=80 --functions=80 --branches=80
 ```
 
 ## 📝 Notes

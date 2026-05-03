@@ -114,26 +114,45 @@ test:
     - develop # Also run on the develop branch
     - main # Also run on the main branch
 
-# Stage for running SonarQube analysis
+# Run SonarQube static code analysis.
 sonar:
+  # Pipeline stage where the SonarQube analysis is executed.
   stage: sonar
-  image: node:24.0.1 # Use Node.js 24.0.1 Docker image
+
+  # Use the official SonarScanner CLI image so the sonar-scanner command is available.
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: ['']
+
+  # Download artifacts from the test job, especially the coverage report.
   needs:
-    - job: test # This job depends on the test job and will run after it
-      artifacts: true # Make artifacts from the test job available to this job
-  allow_failure: true # Continue the pipeline if the SonarQube analysis fails
+    - job: test
+      artifacts: true
+
+  # Do not fail the full pipeline if SonarQube analysis fails.
+  allow_failure: true
+
+  variables:
+    # Store SonarScanner cache inside the project workspace.
+    SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar'
+
+    # Fetch the full Git history so SonarQube can properly assign blame information.
+    GIT_DEPTH: '0'
+
   script:
-    - npm run sonar # Run the SonarQube analysis
+    # Run SonarScanner using sonar-project.properties and CI variables.
+    - sonar-scanner
+
   cache:
-    key:
-      files:
-        - package-lock.json # Cache based on the package-lock.json file
+    # Reuse SonarScanner cache between pipeline executions.
+    key: sonar-cache
     paths:
-      - node_modules # Cache node_modules to speed up future builds
-    policy: pull # Only pull the cache before running the job (no pushing)
+      - .sonar/cache
+
+  # Run SonarQube analysis only for merge requests and the main branch.
   only:
-    - merge_requests # Only run this job for merge requests
-    - main # Also run on the main branch
+    - merge_requests
+    - main
 
 # Stage for deploying the application
 deploy:
