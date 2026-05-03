@@ -72,8 +72,12 @@
   },
   "nyc": {
     "all": true,
-    "extension": [".ts"],
-    "include": ["app/**/*.ts"],
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "app/**/*.ts"
+    ],
     "exclude": [
       "app/docs/**",
       "app/**/tests/**",

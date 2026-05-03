@@ -21,6 +21,8 @@ export enum APICode {
   RequiredToken = 'required_token',
   UnknownError = 'unknown_error',
   RequiredParameter = 'required_parameter',
+  CityNotFound = 'city_not_found',
+  CityAlreadyExists = 'city_already_exists',
   MeteoStationNotFound = 'meteo_station_not_found',
   MeteoStationAlreadyExists = 'meteo_station_already_exists',
   TranslationNotFound = 'translation_not_found'

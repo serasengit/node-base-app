@@ -1,7 +1,10 @@
 import { MeteoStationDTO } from '@features/meteo-stations/dtos/meteo-station-dto';
 import { JSONSchema, Model, RelationMappings } from 'objection';
-import { default as CitySchema } from '../../cities/schemas/city-schema';
+import CitySchema from '../../cities/schemas/city-schema';
 
+/**
+ * Objection model that represents the meteo_stations table.
+ */
 export default class MeteoStationSchema extends Model {
   id!: number;
   name!: string;
@@ -10,20 +13,29 @@ export default class MeteoStationSchema extends Model {
   cityId!: number;
   createdAt!: Date;
   updatedAt!: Date;
+
   // Relations
   city?: CitySchema;
 
+  /**
+   * Updates the modification timestamp before updating the record.
+   */
   $beforeUpdate(): void {
     this.updatedAt = new Date();
   }
 
-  static readonly tableName = 'meteoStations';
+  static readonly tableName = 'meteo_stations';
 
+  /**
+   * JSON schema used by Objection to validate meteo station entities.
+   */
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
-    required: ['name', 'longitude', 'latitude'],
+    required: ['name', 'longitude', 'latitude', 'cityId'],
     properties: {
-      id: { type: 'integer' },
+      id: {
+        type: 'integer'
+      },
 
       name: {
         type: 'string',
@@ -43,6 +55,10 @@ export default class MeteoStationSchema extends Model {
         maximum: 90
       },
 
+      cityId: {
+        type: 'integer'
+      },
+
       createdAt: {
         type: 'string',
         format: 'date-time'
@@ -51,27 +67,31 @@ export default class MeteoStationSchema extends Model {
       updatedAt: {
         type: 'string',
         format: 'date-time'
-      },
-
-      cityId: {
-        type: 'integer'
       }
     }
   };
 
+  /**
+   * Defines model relations used by Objection.
+   *
+   * A meteo station belongs to one city.
+   */
   static get relationMappings(): RelationMappings {
     return {
       city: {
         relation: Model.BelongsToOneRelation,
         modelClass: CitySchema,
         join: {
-          from: 'meteoStations.cityId',
+          from: 'meteo_stations.cityId',
           to: 'cities.id'
         }
       }
     };
   }
 
+  /**
+   * Maps a MeteoStationSchema model into its API DTO representation.
+   */
   static toDTO(meteoStationSchema: MeteoStationSchema): MeteoStationDTO {
     const meteoStation: MeteoStationDTO = {
       id: meteoStationSchema.id,
@@ -79,7 +99,12 @@ export default class MeteoStationSchema extends Model {
       longitude: meteoStationSchema.longitude,
       latitude: meteoStationSchema.latitude
     };
-    if (meteoStationSchema.city) meteoStation.city = CitySchema.toDTO(meteoStationSchema.city);
+
+    // Include related city only when the relation has been loaded.
+    if (meteoStationSchema.city) {
+      meteoStation.city = CitySchema.toDTO(meteoStationSchema.city);
+    }
+
     return meteoStation;
   }
 }

@@ -26,13 +26,19 @@ export async function seed(knex: Knex): Promise<void> {
     { code: 'required_parameter', language: 'en', text: 'Required parameter' },
     { code: 'required_parameter', language: 'es', text: 'Parámetro requerido' },
 
+    // CITY_MESSAGES
+    { code: 'city_not_found', language: 'en', text: 'City not found' },
+    { code: 'city_not_found', language: 'es', text: 'Ciudad no encontrada' },
+    { code: 'city_already_exists', language: 'en', text: 'City already exists' },
+    { code: 'city_already_exists', language: 'es', text: 'La ciudad ya existe' },
+
     // TRANSLATION_MESSAGES
     { code: 'translation_not_found', language: 'en', text: 'Translation not found' },
     { code: 'translation_not_found', language: 'es', text: 'Traducción no encontrada' },
 
     // METEO_STATION_MESSAGES
     { code: 'meteo_station_not_found', language: 'en', text: 'Meteorological station not found' },
-    { code: 'meteo_station_not_found', language: 'es', text: 'Estación meteorológica no encontrada' },
+    { code: 'meteo_station_not_found', language: 'es', text: 'Estación meteorológica no encontrada' },
     { code: 'meteo_station_already_exists', language: 'en', text: 'Meteorological station already exists' },
     { code: 'meteo_station_already_exists', language: 'es', text: 'La estación meteorológica ya existe' }
   ]);

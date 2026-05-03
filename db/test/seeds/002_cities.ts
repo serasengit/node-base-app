@@ -1,29 +1,24 @@
 import { Knex } from 'knex';
 
-const METEO_STATIONS_COUNT = 100;
+const CITIES_COUNT = 100;
+
+const COUNTRIES = ['Spain', 'France', 'Portugal', 'Italy', 'Germany'];
+const PROVINCES = ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Zaragoza', 'Bilbao', 'Malaga', 'Alicante', 'Murcia', 'Valladolid'];
 
 export async function seed(knex: Knex): Promise<void> {
-  await knex('meteo_stations').del();
+  await knex('cities').del();
 
-  const cities = await knex('cities').select('id').orderBy('id', 'asc');
-
-  if (cities.length === 0) {
-    throw new Error('Cannot seed meteo_stations because cities table is empty.');
-  }
-
-  const meteoStations = Array.from({ length: METEO_STATIONS_COUNT }, (_, index) => {
-    const stationNumber = index + 1;
-    const city = cities[index % cities.length];
+  const cities = Array.from({ length: CITIES_COUNT }, (_, index) => {
+    const cityNumber = index + 1;
 
     return {
-      name: `Meteo Station ${stationNumber}`,
-      longitude: Number((-9.5 + Math.random() * 13.5).toFixed(8)),
-      latitude: Number((36.0 + Math.random() * 7.8).toFixed(8)),
-      city_id: city.id,
+      name: `City ${cityNumber}`,
+      province: PROVINCES[index % PROVINCES.length],
+      country: COUNTRIES[index % COUNTRIES.length],
       created_at: knex.fn.now(),
       updated_at: knex.fn.now()
     };
   });
 
-  await knex('meteo_stations').insert(meteoStations);
+  await knex('cities').insert(cities);
 }

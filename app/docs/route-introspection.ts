@@ -62,6 +62,7 @@ function tagFromMountPath(path: string): string {
     authorizations: 'Authorizations',
     inspections: 'Inspections',
     analytics: 'Analytics',
+    cities: 'Cities',
     'meteo-stations': 'Meteo Stations',
     'config-master-tables': 'Master Tables',
     'parameter-values': 'Parameter Values',

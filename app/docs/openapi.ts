@@ -1,4 +1,5 @@
 import { findResourceSchema, paginationSchema } from '@core/routes/common-route-schema';
+import { cityPaginationColumns, cityRelationSchema, citySchema, findCitiesSchema } from '@features/cities/routes/city-route-schema';
 import {
   findMeteoStationsSchema,
   meteoStationPaginationColumns,
@@ -50,7 +51,7 @@ function paginatedResponse(schemaRef: string): OpenApiObject {
   };
 }
 
-function operation(summary: string, extra: Partial<OpenApiObject> = {}, requiresAuth = true): OpenApiObject {
+function operation(summary: string, extra: Partial<OpenApiObject> = {}, requiresAuth = true, tag = 'Meteo Stations'): OpenApiObject {
   const defaultResponses: OpenApiObject = {
     400: response('Bad request.', '#/components/schemas/ApiError'),
     401: response('Unauthorized.', '#/components/schemas/ApiError'),
@@ -63,7 +64,7 @@ function operation(summary: string, extra: Partial<OpenApiObject> = {}, requires
   delete restExtra.responses;
 
   return {
-    tags: ['Meteo Stations'],
+    tags: [tag],
     summary,
     ...(requiresAuth ? { security: [{ bearerAuth: [] }] } : {}),
     responses: {
@@ -76,7 +77,18 @@ function operation(summary: string, extra: Partial<OpenApiObject> = {}, requires
 
 export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMount[] = []): OpenApiObject {
   const discoveredPaths = collectMountedRouterPaths(routeMounts);
+  const cityRequestBody = jsonRequestBodyFromValidationSchemas(citySchema());
   const meteoStationRequestBody = jsonRequestBodyFromValidationSchemas(meteoStationSchema());
+  const cityExample = {
+    default: {
+      summary: 'Sample city',
+      value: {
+        name: 'Logrono',
+        province: 'La Rioja',
+        country: 'Spain'
+      }
+    }
+  };
   const meteoStationExample = {
     default: {
       summary: 'Sample meteo station',
@@ -95,6 +107,13 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
     };
   }
 
+  if (cityRequestBody?.content && typeof cityRequestBody.content === 'object') {
+    (cityRequestBody.content as Record<string, OpenApiObject>)['application/json'] = {
+      ...((cityRequestBody.content as Record<string, OpenApiObject>)['application/json'] ?? {}),
+      examples: cityExample
+    };
+  }
+
   return {
     openapi: '3.0.3',
     info: {
@@ -109,6 +128,10 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
       }
     ],
     tags: [
+      {
+        name: 'Cities',
+        description: 'CRUD endpoints for cities.'
+      },
       {
         name: 'Meteo Stations',
         description: 'CRUD endpoints for meteo stations.'
@@ -154,6 +177,21 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
             updatedAt: { type: 'string', format: 'date-time', nullable: true }
           }
         },
+        City: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            province: { type: 'string', nullable: true },
+            country: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time', nullable: true },
+            updatedAt: { type: 'string', format: 'date-time', nullable: true },
+            meteoStations: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/MeteoStation' }
+            }
+          }
+        },
         MeteoStation: {
           type: 'object',
           properties: {
@@ -175,10 +213,90 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
             latitude: { type: 'number' }
           },
           example: meteoStationExample.default.value
+        },
+        CityWriteRequest: {
+          type: 'object',
+          required: ['name', 'country'],
+          properties: {
+            name: { type: 'string', minLength: 1, maxLength: 100 },
+            province: { type: 'string', minLength: 1, maxLength: 100, nullable: true },
+            country: { type: 'string', minLength: 1, maxLength: 100 }
+          },
+          example: cityExample.default.value
         }
       }
     },
     paths: mergeOpenApiPaths(discoveredPaths, {
+      '/cities': {
+        get: operation(
+          'List cities',
+          {
+            description: 'Returns a paginated list of cities.',
+            parameters: parametersFromValidationSchemas(findCitiesSchema(), cityRelationSchema(), paginationSchema(cityPaginationColumns)),
+            responses: {
+              200: paginatedResponse('#/components/schemas/City')
+            }
+          },
+          true,
+          'Cities'
+        ),
+        post: operation(
+          'Create city',
+          {
+            description: 'Creates a new city.',
+            requestBody: cityRequestBody,
+            responses: {
+              201: response('City created.', '#/components/schemas/City'),
+              409: response('City already exists.', '#/components/schemas/ApiError')
+            }
+          },
+          true,
+          'Cities'
+        )
+      },
+      '/cities/{id}': {
+        get: operation(
+          'Get city by id',
+          {
+            description: 'Returns one city by identifier.',
+            parameters: parametersFromValidationSchemas(findResourceSchema(), cityRelationSchema()),
+            responses: {
+              200: response('City found.', '#/components/schemas/City'),
+              404: response('City not found.', '#/components/schemas/ApiError')
+            }
+          },
+          true,
+          'Cities'
+        ),
+        put: operation(
+          'Update city',
+          {
+            description: 'Updates an existing city.',
+            parameters: parametersFromValidationSchemas(findResourceSchema()),
+            requestBody: cityRequestBody,
+            responses: {
+              200: response('City updated.', '#/components/schemas/City'),
+              404: response('City not found.', '#/components/schemas/ApiError'),
+              409: response('City already exists.', '#/components/schemas/ApiError')
+            }
+          },
+          true,
+          'Cities'
+        ),
+        delete: operation(
+          'Delete city',
+          {
+            description: 'Deletes a city.',
+            parameters: parametersFromValidationSchemas(findResourceSchema()),
+            responses: {
+              204: { description: 'City deleted.' },
+              404: response('City not found.', '#/components/schemas/ApiError')
+            }
+          },
+          true,
+          'Cities'
+        )
+      },
       '/meteo-stations': {
         get: operation('List meteo stations', {
           description: 'Returns a paginated list of meteo stations.',

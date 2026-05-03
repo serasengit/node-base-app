@@ -2,6 +2,9 @@ import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-s
 import { JSONSchema, Model, RelationMappings } from 'objection';
 import { CityDTO } from '../dtos/city-dto';
 
+/**
+ * Objection model that represents the cities table.
+ */
 export default class CitySchema extends Model {
   id!: number;
   name!: string;
@@ -9,15 +12,22 @@ export default class CitySchema extends Model {
   country!: string;
   createdAt!: Date;
   updatedAt!: Date;
+
   // Relations
   meteoStations?: MeteoStationSchema[];
 
   static readonly tableName = 'cities';
 
+  /**
+   * Updates the modification timestamp before updating the record.
+   */
   $beforeUpdate(): void {
     this.updatedAt = new Date();
   }
 
+  /**
+   * JSON schema used by Objection to validate city entities.
+   */
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
     required: ['name', 'country'],
@@ -55,6 +65,11 @@ export default class CitySchema extends Model {
     }
   };
 
+  /**
+   * Defines model relations used by Objection.
+   *
+   * A city can have many meteo stations.
+   */
   static get relationMappings(): RelationMappings {
     return {
       meteoStations: {
@@ -62,12 +77,15 @@ export default class CitySchema extends Model {
         modelClass: MeteoStationSchema,
         join: {
           from: 'cities.id',
-          to: 'meteoStations.cityId'
+          to: 'meteo_stations.cityId'
         }
       }
     };
   }
 
+  /**
+   * Maps a CitySchema model into its API DTO representation.
+   */
   static toDTO(citySchema: CitySchema): CityDTO {
     const city: CityDTO = {
       id: citySchema.id,
@@ -77,6 +95,8 @@ export default class CitySchema extends Model {
       createdAt: citySchema.createdAt,
       updatedAt: citySchema.updatedAt
     };
+
+    // Include related meteo stations only when the relation has been loaded.
     if (citySchema.meteoStations) {
       city.meteoStations = citySchema.meteoStations.map((meteoStation) => MeteoStationSchema.toDTO(meteoStation));
     }

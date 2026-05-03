@@ -77,3 +77,121 @@
     at next (C:\Workspace\node-base-app\node_modules\express\lib\router\route.js:149:13)
     at middleware (C:\Workspace\node-base-app\node_modules\express-validator\lib\middlewares\check.js:16:13)
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:39:31 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:39:31 [error]: Error in TranslationService.findTranslationTextByCodeAndLanguage: translation_not_found, message: , details: undefined, stack: Error
+    at TranslationService.findTranslationTextByCodeAndLanguage (C:\Workspace\node-base-app\app\features\translations\services\translation-service.ts:20:37)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async errorHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:96:18)
+2026-05-03 19:39:31 [error]: Error in errorHandler: code: translation_not_found, message: , details: undefined, stack: Error
+    at TranslationService.findTranslationTextByCodeAndLanguage (C:\Workspace\node-base-app\app\features\translations\services\translation-service.ts:20:37)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async errorHandler (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:96:18)
+2026-05-03 19:44:05 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:05 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 233, Barcelona, France, details: "City 233, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:09 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:09 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 233, Barcelona, France, details: "City 233, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:10 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:10 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 233, Barcelona, France, details: "City 233, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:11 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:11 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 233, Barcelona, France, details: "City 233, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:44:39 [error]: Error in GET /api/v1/cities/%7B%7Bid%7D%7D?include=meteoStations: code: client_error_unprocessable_entity, message: Client error unprocessable entity, details: undefined, errors: [{"code":"invalid_parameter","message":"Invalid parameter: id"}], stack: Error
+    at validateRequestParameters (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:33:11)
+    at Layer.handle [as handle_request] (C:\Workspace\node-base-app\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\route.js:149:13)
+    at middleware (C:\Workspace\node-base-app\node_modules\express-validator\lib\middlewares\check.js:16:13)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:45:05 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:45:05 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 233, Barcelona, France, details: "City 233, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:36:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:38:18)
+2026-05-03 19:47:03 [error]: Error in CityService.create: undefined, message: meteoStations[0].longitude: must be number, meteoStations[0].latitude: must be number, details: undefined, stack: ValidationError: meteoStations[0].longitude: must be number, meteoStations[0].latitude: must be number
+    at Function.createValidationError (C:\Workspace\node-base-app\node_modules\objection\lib\model\Model.js:338:12)
+    at parseValidationError (C:\Workspace\node-base-app\node_modules\objection\lib\model\AjvValidator.js:206:21)
+    at AjvValidator.validate (C:\Workspace\node-base-app\node_modules\objection\lib\model\AjvValidator.js:82:19)
+    at validate (C:\Workspace\node-base-app\node_modules\objection\lib\model\modelValidate.js:35:20)
+    at MeteoStationSchema.$validate (C:\Workspace\node-base-app\node_modules\objection\lib\model\Model.js:90:12)
+    at GraphInsertAction._insert (C:\Workspace\node-base-app\node_modules\objection\lib\queryBuilder\graph\insert\GraphInsertAction.js:177:16)
+    at GraphInsertAction._insertBatch (C:\Workspace\node-base-app\node_modules\objection\lib\queryBuilder\graph\insert\GraphInsertAction.js:48:16)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:47:03 [error]: Error in POST /api/v1/cities: code: internal_server_error, message: meteoStations[0].longitude: must be number, meteoStations[0].latitude: must be number, stack: ValidationError: meteoStations[0].longitude: must be number, meteoStations[0].latitude: must be number
+    at Function.createValidationError (C:\Workspace\node-base-app\node_modules\objection\lib\model\Model.js:338:12)
+    at parseValidationError (C:\Workspace\node-base-app\node_modules\objection\lib\model\AjvValidator.js:206:21)
+    at AjvValidator.validate (C:\Workspace\node-base-app\node_modules\objection\lib\model\AjvValidator.js:82:19)
+    at validate (C:\Workspace\node-base-app\node_modules\objection\lib\model\modelValidate.js:35:20)
+    at MeteoStationSchema.$validate (C:\Workspace\node-base-app\node_modules\objection\lib\model\Model.js:90:12)
+    at GraphInsertAction._insert (C:\Workspace\node-base-app\node_modules\objection\lib\queryBuilder\graph\insert\GraphInsertAction.js:177:16)
+    at GraphInsertAction._insertBatch (C:\Workspace\node-base-app\node_modules\objection\lib\queryBuilder\graph\insert\GraphInsertAction.js:48:16)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:52:29 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:50:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:49:18)
+2026-05-03 19:52:29 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 235, Barcelona, France, details: "City 235, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:50:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:49:18)
+2026-05-03 19:52:32 [error]: Error in CityService.create: city_already_exists, message: , details: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:50:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:49:18)
+2026-05-03 19:52:32 [error]: Error in POST /api/v1/cities: code: city_already_exists, message: La ciudad ya existe: City 235, Barcelona, France, details: "City 235, Barcelona, France", errors: undefined, stack: Error
+    at CityService.create (C:\Workspace\node-base-app\app\features\cities\services\city-service.ts:50:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async CityController.create (C:\Workspace\node-base-app\app\features\cities\controllers\city-controller.ts:49:18)
+2026-05-03 19:55:43 [error]: Error in POST /api/v1/meteo-stations: code: client_error_unprocessable_entity, message: Error del cliente entidad no procesable, details: undefined, errors: [{"code":"invalid_parameter","message":"Parámetro inválido: name"}], stack: Error
+    at validateRequestParameters (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:33:11)
+    at Layer.handle [as handle_request] (C:\Workspace\node-base-app\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\route.js:149:13)
+    at middleware (C:\Workspace\node-base-app\node_modules\express-validator\lib\middlewares\check.js:16:13)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:55:58 [error]: Error in POST /api/v1/meteo-stations: code: client_error_unprocessable_entity, message: Error del cliente entidad no procesable, details: undefined, errors: [{"code":"invalid_parameter","message":"Parámetro inválido: name"}], stack: Error
+    at validateRequestParameters (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:33:11)
+    at Layer.handle [as handle_request] (C:\Workspace\node-base-app\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\route.js:149:13)
+    at middleware (C:\Workspace\node-base-app\node_modules\express-validator\lib\middlewares\check.js:16:13)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:55:59 [error]: Error in POST /api/v1/meteo-stations: code: client_error_unprocessable_entity, message: Error del cliente entidad no procesable, details: undefined, errors: [{"code":"invalid_parameter","message":"Parámetro inválido: name"}], stack: Error
+    at validateRequestParameters (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:33:11)
+    at Layer.handle [as handle_request] (C:\Workspace\node-base-app\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\route.js:149:13)
+    at middleware (C:\Workspace\node-base-app\node_modules\express-validator\lib\middlewares\check.js:16:13)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-05-03 19:56:10 [error]: Error in MeteoStationService.create: meteo_station_already_exists, message: , details: undefined, stack: Error
+    at MeteoStationService.create (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:48:35)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.create (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:48:26)
+2026-05-03 19:56:10 [error]: Error in POST /api/v1/meteo-stations: code: meteo_station_already_exists, message: La estación meteorológica ya existe: Meteo Station 107, details: "Meteo Station 107", errors: undefined, stack: Error
+    at MeteoStationService.create (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:48:35)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.create (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:48:26)

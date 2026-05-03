@@ -31,8 +31,7 @@ type MeteoStationRecord = {
   name: string;
   longitude: number;
   latitude: number;
-  created_by_id?: number | null;
-  updated_by_id?: number | null;
+  city_id?: number | null;
 };
 
 function uniqueStationName(suffix: string): string {
@@ -50,10 +49,10 @@ async function getSeededStation(): Promise<MeteoStationRecord> {
 }
 
 async function insertTestStation(overrides: Partial<MeteoStationRecord> = {}): Promise<MeteoStationRecord> {
-  const firstUser = await db('users').select('id').orderBy('id', 'asc').first();
+  const firstCity = await db('cities').select('id').orderBy('id', 'asc').first();
 
-  if (!firstUser) {
-    throw new Error('Expected seeded users in test database.');
+  if (!firstCity) {
+    throw new Error('Expected seeded cities in test database.');
   }
 
   const [station] = await db<MeteoStationRecord>('meteo_stations')
@@ -61,8 +60,7 @@ async function insertTestStation(overrides: Partial<MeteoStationRecord> = {}): P
       name: overrides.name ?? uniqueStationName('INSERTED'),
       longitude: overrides.longitude ?? -3.70379,
       latitude: overrides.latitude ?? 40.41678,
-      created_by_id: overrides.created_by_id ?? firstUser.id,
-      updated_by_id: overrides.updated_by_id ?? firstUser.id
+      city_id: overrides.city_id ?? firstCity.id
     })
     .returning('*');
 

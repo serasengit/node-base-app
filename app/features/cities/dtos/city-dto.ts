@@ -11,6 +11,9 @@ export class CityDTO {
   // Relations
   meteoStations?: MeteoStationDTO[];
 
+  /**
+   * Maps a CityDTO into its persistence schema representation.
+   */
   static toSchema(city: CityDTO): CitySchema {
     const citySchema = new CitySchema();
 
