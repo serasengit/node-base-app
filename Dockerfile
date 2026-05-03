@@ -27,7 +27,10 @@ FROM dependencies AS unit-tests
 
 RUN npm run build
 
-CMD sh -c "npm run lint && npm run test:coverage --env=${NODE_ENV} && npm run test:coverage:check"
+# Execute linter,unit tests and coverage reporting checking
+CMD sh -c "npm run lint && \
+npm run test:coverage --env=${NODE_ENV} && \
+npm run test:coverage:check -- --statements  ${MIN_COVERAGE_PERCENTAGE} --lines ${MIN_COVERAGE_PERCENTAGE} --functions ${MIN_COVERAGE_PERCENTAGE}"
 
 # ---- Runtime app ----
 FROM base AS app
