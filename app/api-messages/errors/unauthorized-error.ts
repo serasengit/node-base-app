@@ -1,6 +1,6 @@
+import { APICode } from '@api-messages/api-messages';
 import StatusCode from 'status-code-enum';
 import { BaseError } from './base-error';
-import { APICode, Language } from '@api-messages/api-messages';
 
 /**
  * @summary UnauthorizedError
@@ -8,7 +8,7 @@ import { APICode, Language } from '@api-messages/api-messages';
  *
  */
 export class UnauthorizedError extends BaseError {
-  constructor(code: APICode, language?: Language) {
-    super(code, StatusCode.ClientErrorUnauthorized, language);
+  constructor(code: APICode) {
+    super(code, StatusCode.ClientErrorUnauthorized);
   }
 }

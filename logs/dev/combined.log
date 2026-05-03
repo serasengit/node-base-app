@@ -1,0 +1,16 @@
+2026-05-03 13:55:15 [info]: API running at http://localhost:3000/api/v1
+2026-05-03 13:55:15 [info]: Healthcheck running at http://localhost:3002/health
+2026-05-03 13:56:27 [info]: API running at http://localhost:3000/api/v1
+2026-05-03 13:56:27 [info]: Healthcheck running at http://localhost:3002/health
+2026-05-03 13:57:21 [info]: ❤️ Healthcheck running at http://localhost:3002/health
+2026-05-03 13:57:21 [info]: 🚀 API running at http://localhost:3000/api/v1
+2026-05-03 14:25:12 [info]: 🚀 API running at http://0.0.0.0:3000/api/v1
+2026-05-03 14:25:12 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 14:27:01 [info]: 🚀  API running at http://0.0.0.0:3000/api/v1
+2026-05-03 14:27:01 [info]: ❤️  Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 14:27:18 [info]: 🚀 API running at http://0.0.0.0:3000/api/v1
+2026-05-03 14:27:18 [info]: ❤️  Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 14:27:42 [info]: 🚀 API running at http://0.0.0.0:3000/api/v1
+2026-05-03 14:27:42 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 14:44:04 [info]: 🚀 API running at http://0.0.0.0:3000/api/v1
+2026-05-03 14:44:04 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health

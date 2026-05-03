@@ -1,49 +1,156 @@
-version: '3'
+# Service configurations
 services:
-  dependencies:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: dependencies
-    container_name: ${DOCKER_CONTAINER_NAME}-dependencies
-    image: ${DOCKER_IMAGE_NAME}-dependencies
-  unit-tests:
-    profiles: ['unit-tests']
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: unit-tests
-    container_name: ${DOCKER_CONTAINER_NAME}-unit-tests
-    image: ${DOCKER_IMAGE_NAME}_unit-tests
-    env_file:
-      - environments/.env.test
-    healthcheck:
-      test: ['CMD', 'npm', 'run', 'test']
-      interval: 10s
-      start_period: 10s
-      timeout: 10s
-      retries: 3
-    depends_on:
-      dependencies:
-        condition: service_completed_successfully
-  app:
-    profiles: ['app']
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: app
-    container_name: ${DOCKER_CONTAINER_NAME}-app
-    image: ${DOCKER_IMAGE_NAME}-app
+  # Postgres Service (PostgreSQL + Timescale extension)
+  postgres:
+    # Profiles for this service
+    profiles: ['postgres', 'migrations', 'unit-tests', 'app']
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-postgres
+    # TimescaleDB image compatible with PostgreSQL 17
+    image: postgres:17-alpine
+    # Ensure Timescale is loaded and keep consistent logging
+    command:
+      - postgres
+      - -c
+      - log_statement=mod
+    # Environment file to define variables
     env_file:
       - environments/.env.${NODE_ENV}
+    # Logging configuration, including maximum log size and number of log files
+    logging:
+      options:
+        max-size: 10m
+        max-file: '3'
+    environment:
+      LANG: es_ES.UTF-8
+      LC_ALL: es_ES.UTF-8
+    # Port mapping from host machine to container
     ports:
-      - '${SERVER_PORT}:${SERVER_PORT}'
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    # Volume mapping from Docker named volume to container for persistent data storage
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    # Health check configuration for the container
     healthcheck:
-      test: curl -s http://${DOCKER_CONTAINER_NAME}-app:${SERVER_PORT} || exit 1
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       start_period: 10s
-      timeout: 10s
+      timeout: 30s
       retries: 3
+
+  # Migrations Service Configuration
+  migrations:
+    # Profiles for this service
+    profiles: ['migrations', 'unit-tests']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: migrations # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-migrations
+    # Docker image for the migrations service
+    image: ${DOCKER_IMAGE_NAME}-migrations
+    # Environment file to define variables
+    env_file:
+      - environments/.env.${NODE_ENV}
+    environment:
+      IS_DOCKER: 'true'
+    # Dependency declaration on the Postgres service, waiting for it to be healthy
     depends_on:
-      dependencies:
+      postgres:
+        condition: service_healthy
+
+  # Unit Tests Service Configuration
+  unit-tests:
+    # Profiles for this service
+    profiles: ['unit-tests']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: unit-tests # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-unit-tests
+    # Docker image for the unit tests service
+    image: ${DOCKER_IMAGE_NAME}_unit-tests
+    # Environment file to define variables
+    env_file:
+      - environments/.env.test
+    environment:
+      POSTGRES_HOST: care-wastewater-control-center-test-postgres # Replace with the name of the Postgres service
+    # Dependency declaration on the migrations service, waiting for it to complete successfully
+    depends_on:
+      migrations:
         condition: service_completed_successfully
+    volumes:
+      - ./coverage:/src/coverage # Mount the coverage directory
+
+  # Dependencies Service Configuration
+  dependencies:
+    # Profiles for this service
+    profiles: ['unit-tests', 'app']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: dependencies # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-dependencies
+    # Docker image for the dependencies service
+    image: ${DOCKER_IMAGE_NAME}-dependencies
+
+  # App Service Configuration
+  app:
+    # Profiles for this service
+    profiles: ['app']
+    # Build configuration for the service
+    build:
+      context: . # Build context (location of source code)
+      dockerfile: ./Dockerfile # Path to the Dockerfile for building the image
+      target: app # Build target label in the Dockerfile
+    # Container name using an environment variable
+    container_name: ${DOCKER_CONTAINER_NAME}-app
+    # Docker image for the app service
+    image: ${DOCKER_IMAGE_NAME}-app
+    # Environment file to define variables
+    env_file:
+      - environments/.env.${NODE_ENV}
+    environment:
+      IS_DOCKER: 'true'
+      LOGS_FOLDER: /src/logs/app
+      DOCUMENTS_FOLDER: /src/documents/app
+    # Port mapping from host machine to container
+    ports:
+      - '${SERVER_PORT}:${SERVER_PORT}'
+    # Volume mapping from Docker named volumes to container for logging and documents
+    volumes:
+      - server-logs:/src/logs/app
+      - server-documents:/src/documents/app
+      - ./certs:/src/dist/certs
+    # Network configuration
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    # Health checks to ensure the application is running correctly
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:${HEALTHCHECK_PORT}/health || exit 1']
+      interval: 10s
+      start_period: 10s
+      timeout: 30s
+      retries: 3
+    # Dependency declaration on required services
+    depends_on:
+      apprise:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+volumes:
+  # Named volume for Postgres persistent data
+  postgres-data:
+    name: ${DOCKER_CONTAINER_NAME}-postgres-data
+
+  # Named volume for app logs
+  server-logs:
+    name: ${DOCKER_CONTAINER_NAME}-server-logs

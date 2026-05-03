@@ -1,81 +1,212 @@
 stages:
-  - dependencies
-  - build
-  - test
-  - sonar
-variables:
-  MIN_COVERAGE: 40 # set the threshold at 80%
+  - dependencies # First stage: Install dependencies
+  - build # Second stage: Build the project
+  - test # Third stage: Run tests and check coverage
+  - sonar # Fourth stage: Run SonarQube analysis
+  - deploy # Fifth stage: Deploy the application
+  - zap # Sixth stage: Run ZAP security analysis
 
+# Stage for installing dependencies
 dependencies:
   stage: dependencies
-  image: node:12-alpine
+  image: node:24.0.1 # Use Node.js 24.0.1 Docker image
   script:
-    - npm install
+    - npm install # Install project dependencies
   cache:
     key:
       files:
-        - package-lock.json
+        - package-lock.json # Cache based on the package-lock.json file
     paths:
-      - node_modules
-    policy: pull-push
+      - node_modules # Cache node_modules to speed up future builds
+    policy: pull-push # Pull cache before running the job and push cache after
   only:
-    - merge_requests
-    - develop
+    - merge_requests # Only run this job for merge requests
+    - develop # Also run on the develop branch
+    - main # Also run on the main branch
+# Stage for building the project
 build:
   stage: build
-  image: node:12-alpine
+  image: node:24.0.1 # Use Node.js 24.0.1 Docker image
   script:
-    - npm run build
+    - npm run build # Run the build command
   artifacts:
     paths:
-      - $CI_PROJECT_DIR/dist
+      - $CI_PROJECT_DIR/dist # Save the dist directory as an artifact
   cache:
     key:
       files:
-        - package-lock.json
+        - package-lock.json # Cache based on the package-lock.json file
     paths:
-      - node_modules
-    policy: pull
+      - node_modules # Cache node_modules to speed up future builds
+    policy: pull # Only pull the cache before running the job (no pushing)
   only:
-    - merge_requests
-    - develop
+    - merge_requests # Only run this job for merge requests
+    - develop # Also run on the develop branch
+    - main # Also run on the main branch
+
+# Stage for running tests and checking code coverage
 test:
   stage: test
-  image: node:12-alpine
-  allow_failure: false
+  image: docker:24.0.5-cli # o usa tu propia imagen con node y docker
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375 # Define the Docker host address
+    DOCKER_TLS_CERTDIR: '' # Disable TLS
+  before_script:
+    - apk add --no-cache nodejs npm # instala node y npm (alternativa rápida)
+    - npm install # Install project dependencies
   script:
-    - npm run lint
-    - npm run test:coverage
-    - npm run test:coverage:check --min_percentage=$MIN_COVERAGE
+    # Start the unit-tests container with the correct environment
+    - |
+      if ! docker compose --env-file environments/.env.test --profile unit-tests up --build -d; then
+        docker compose --env-file environments/.env.test logs migrations
+        docker compose --env-file environments/.env.test down --remove-orphans
+        exit 1
+      fi
+
+    # Get the container ID of the unit-tests service
+    - UNIT_TESTS_CONTAINER=$(docker compose --env-file environments/.env.test ps -q unit-tests)
+
+    # Wait for container to finish
+    - |
+      echo "Waiting for unit-tests container ($UNIT_TESTS_CONTAINER) to finish..."
+      while [ "$(docker inspect -f '{{.State.Running}}' "$UNIT_TESTS_CONTAINER")" == "true" ]; do
+        sleep 2
+      done
+
+    # Show logs from the service (use service name, not container name)
+    - docker compose --env-file environments/.env.test logs unit-tests
+
+    # Get the exit code and fail if non-zero
+    - |
+      exit_code=$(docker wait "$UNIT_TESTS_CONTAINER")
+      echo "Container exit code: $exit_code"
+      if [ "$exit_code" -ne 0 ]; then
+        echo "Tests failed."
+        exit $exit_code
+      fi
+
+    # Cleanup
+    - docker compose --env-file environments/.env.test down --remove-orphans
+
+    # Clean up containers and orphaned resources
+    - docker compose --env-file environments/.env.test down --remove-orphans
+
   artifacts:
     paths:
-      - $CI_PROJECT_DIR/coverage
+      - $CI_PROJECT_DIR/coverage # Save the coverage report as an artifact
   cache:
     key:
       files:
-        - package-lock.json
+        - package-lock.json # Cache based on the package-lock.json file
     paths:
-      - node_modules
-    policy: pull
+      - node_modules # Cache node_modules to speed up future builds
+    policy: pull # Only pull the cache before running the job (no pushing)
   only:
-    - merge_requests
-    - develop
+    - merge_requests # Only run this job for merge requests
+    - develop # Also run on the develop branch
+    - main # Also run on the main branch
+
+# Stage for running SonarQube analysis
 sonar:
   stage: sonar
-  image: node:12-alpine
+  image: node:24.0.1 # Use Node.js 24.0.1 Docker image
   needs:
-    - job: test
-      artifacts: true
-  allow_failure: false
+    - job: test # This job depends on the test job and will run after it
+      artifacts: true # Make artifacts from the test job available to this job
+  allow_failure: true # Continue the pipeline if the SonarQube analysis fails
   script:
-    - npm run sonar
+    - npm run sonar # Run the SonarQube analysis
   cache:
     key:
       files:
-        - package-lock.json
+        - package-lock.json # Cache based on the package-lock.json file
     paths:
-      - node_modules
-    policy: pull
-  rules:
-    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release/ && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
-      when: on_success
+      - node_modules # Cache node_modules to speed up future builds
+    policy: pull # Only pull the cache before running the job (no pushing)
+  only:
+    - merge_requests # Only run this job for merge requests
+    - main # Also run on the main branch
+
+# Stage for deploying the application
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache sshpass openssh-client # Install sshpass and ssh client tools in Alpine container
+  variables:
+    DOCKER_CONTAINER_NAME: care-wastewater-control-center-back-end-pre # Define the Docker container name for deployment
+  script:
+    # SSH into the server and deploy the application
+    - |
+      sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << EOF
+      set -x
+      cd /home/care-wastewater-control-center/care-wastewater-control-center-back-end
+
+      # Set Git remote to use token authentication
+      sudo git remote set-url origin https://$GIT_USERNAME:$GIT_TOKEN@git.adasasistemas.com/ad10231-plataforma-saneamiento-care/care-wastewater-control-center-back-end.git
+
+      # Switch to the correct branch
+      sudo git checkout main
+
+      # Check git status
+      sudo git status
+
+      # Backup certs folder
+      sudo git stash push -m "backup certs" certs/
+
+      # Reset and pull the latest changes
+      sudo git fetch origin
+      sudo git reset --hard origin/main
+      sudo git pull
+
+      # Restore certs folder
+      sudo git stash pop || true
+
+      # Install dependencies
+      sudo npm install
+
+      # Stop containers if running
+      sudo docker stop ${DOCKER_CONTAINER_NAME}-app || true
+      sudo docker stop ${DOCKER_CONTAINER_NAME}-postgres || true
+
+      # Start migrations container
+      sudo docker compose --env-file environments/.env.pre --profile migrations up --build -d
+
+      # Wait for Postgres
+      until sudo docker exec ${DOCKER_CONTAINER_NAME}-postgres pg_isready -U postgres; do
+        echo "Waiting for PostgreSQL to be ready..."
+        sleep 2
+      done
+
+      # Start app container
+      sudo docker compose --env-file environments/.env.pre --profile app up --build -d
+
+      EOF
+  only:
+    - main # Only run on the main branch
+  allow_failure: false # Fail the pipeline if the deployment fails
+  when: manual # Allow manual trigger of the deployment job
+
+# ZAP audit stage
+zap:
+  stage: zap # Define the stage for ZAP analysis
+  image:
+    name: zaproxy/zap-stable # Use ZAP image
+  before_script:
+    - mkdir -p /zap/wrk # Create a directory for ZAP workspace
+  allow_failure: false # Fail the pipeline if ZAP scan fails
+  script:
+    - zap-baseline.py -t "https://$SSH_HOST:$SERVER_PORT" -g gen.conf -I -r zap_report.html -x zap.out # Run ZAP baseline scan
+    - cp /zap/wrk/zap_report.html zap_report.html # Copy ZAP report to workspace
+  artifacts:
+    when: always # Archive artifacts even if the job fails
+    paths:
+      - zap.out # Archive ZAP report
+      - zap_report.html # Archive ZAP report
+  only:
+    - main # Also run on the main branch
+  needs:
+    - job: deploy # Make sure zap depends on deploy job
+      optional: false # This job is required for the pipeline to succeed

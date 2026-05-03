@@ -1,12 +1,11 @@
-import { MeteoStationDTO } from '@dtos/meteo-station-dto';
+import { UserDTO } from '@dtos/user-dto';
 import { JSONSchema, Model, RelationMappings } from 'objection';
-import UserSchema from './user-schema';
 
-export default class MeteoStationSchema extends Model {
+export default class UserSchema extends Model {
   id!: number;
+  nif!: string;
   name!: string;
-  longitude!: number;
-  latitude!: number;
+  email!: string;
   createdById!: number;
   updatedById!: number;
   createdAt!: Date;
@@ -19,13 +18,19 @@ export default class MeteoStationSchema extends Model {
     this.updatedAt = new Date();
   }
 
-  static readonly tableName = 'meteo_stations';
+  static readonly tableName = 'users';
 
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
-    required: ['name', 'longitude', 'latitude'],
+    required: ['nif', 'name', 'email'],
     properties: {
       id: { type: 'integer' },
+
+      nif: {
+        type: 'string',
+        minLength: 9,
+        maxLength: 9
+      },
 
       name: {
         type: 'string',
@@ -33,16 +38,10 @@ export default class MeteoStationSchema extends Model {
         maxLength: 100
       },
 
-      longitude: {
-        type: 'number',
-        minimum: -180,
-        maximum: 180
-      },
-
-      latitude: {
-        type: 'number',
-        minimum: -90,
-        maximum: 90
+      email: {
+        type: 'string',
+        format: 'email',
+        maxLength: 255
       },
 
       createdAt: {
@@ -71,7 +70,7 @@ export default class MeteoStationSchema extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: UserSchema,
         join: {
-          from: 'meteoStations.createdById',
+          from: 'users.createdById',
           to: 'users.id'
         }
       },
@@ -79,22 +78,34 @@ export default class MeteoStationSchema extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: UserSchema,
         join: {
-          from: 'meteoStations.updatedById',
+          from: 'users.updatedById',
           to: 'users.id'
         }
       }
     };
   }
 
-  static toDTO(meteoStationSchema: MeteoStationSchema): MeteoStationDTO {
-    const meteoStation: MeteoStationDTO = {
-      id: meteoStationSchema.id,
-      name: meteoStationSchema.name,
-      longitude: meteoStationSchema.longitude,
-      latitude: meteoStationSchema.latitude
+  static get virtualAttributes(): string[] {
+    return ['displayName'];
+  }
+
+  get displayName(): string | undefined {
+    if (!this.nif && !this.name) return undefined;
+    if (!this.name) return this.nif;
+    if (!this.nif) return this.name;
+    return this.nif + ' - ' + this.name;
+  }
+
+  static toDTO(userSchema: UserSchema): UserDTO {
+    const user: UserDTO = {
+      id: userSchema.id,
+      name: userSchema.name,
+      displayName: userSchema.displayName,
+      nif: userSchema.nif,
+      email: userSchema.email
     };
-    if (meteoStationSchema.createdByUser) meteoStation.createdBy = UserSchema.toDTO(meteoStationSchema.createdByUser);
-    if (meteoStationSchema.updatedByUser) meteoStation.updatedBy = UserSchema.toDTO(meteoStationSchema.updatedByUser);
-    return meteoStation;
+    if (userSchema.createdByUser) user.createdBy = UserSchema.toDTO(userSchema.createdByUser);
+    if (userSchema.updatedByUser) user.updatedBy = UserSchema.toDTO(userSchema.updatedByUser);
+    return user;
   }
 }

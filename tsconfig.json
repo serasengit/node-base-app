@@ -9,6 +9,7 @@
     "target": "es2018",
     "outDir": "dist",
     "baseUrl": "./app",
+    "ignoreDeprecations": "6.0",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
@@ -16,6 +17,9 @@
     "noImplicitReturns": true,
     "noImplicitAny": false,
     "preserveConstEnums": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "useUnknownInCatchVariables": false,
     "resolveJsonModule": true,
     "typeRoots": ["node_modules/@types"],
     "paths": {
@@ -26,8 +30,8 @@
       "@repositories/*": ["repositories/*"],
       "@schemas/*": ["schemas/*"],
       "@api-messages/*": ["api-messages/*"],
-      "@routes/*": ["routes/*"],
-      "@mappers/*": ["mappers/*"]
+      "@middlewares/*": ["middlewares/*"],
+      "@routes/*": ["routes/*"]
     },
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": true

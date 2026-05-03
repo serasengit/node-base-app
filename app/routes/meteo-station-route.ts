@@ -1,31 +1,66 @@
-import Container from 'typedi';
-import { Router } from 'express';
 import MeteoStationController from '@controllers/meteo-station-controller';
-import { APICode, getAPIMessage, Language } from '@api-messages/api-messages';
-import { check } from 'express-validator';
-import MeteoStationRepositoryImpl from '@repositories/meteo-station/meteo-station-repository-impl';
+import { Router } from 'express';
+import { checkSchema } from 'express-validator';
+import { validateRequestParameters } from '@middlewares/error-handler';
+import Container from 'typedi';
+import { findResourceSchema, paginationSchema } from './schemas/common-route-schema';
+import {
+  findMeteoStationsSchema,
+  meteoStationPaginationColumns,
+  meteoStationRelationSchema,
+  meteoStationSchema
+} from './schemas/meteo-station-route-schema';
 
-// Router
 export const meteoStationRouter = Router();
-// Dependency classes injection handled with 'typedi' library
-const meteoStationController = Container.get(MeteoStationController);
-Container.set(MeteoStationRepositoryImpl, new MeteoStationRepositoryImpl());
 
-// Find all meteo stations
-meteoStationRouter.get(`/`, (req, res) => meteoStationController.findAll(req, res));
-// Find  meteo station by id
+const asyncHandler =
+  (fn) =>
+  (req, res, next): void => {
+    Promise.resolve(fn(req, res)).catch(next);
+  };
+
 meteoStationRouter.get(
-  `/:meteoStationId`,
-  [
-    check('meteoStationId')
-      .notEmpty()
-      .isInt({ min: 1 })
-      .withMessage((value, { req }) => {
-        return {
-          code: APICode.InvalidParameter,
-          message: `${getAPIMessage(APICode.InvalidParameter, req.headers?.language as Language)}:meteoStationId`
-        };
-      })
-  ],
-  (req, res) => meteoStationController.findById(req, res)
+  '/',
+  checkSchema({
+    ...findMeteoStationsSchema(),
+    ...meteoStationRelationSchema(),
+    ...paginationSchema(meteoStationPaginationColumns)
+  }),
+  validateRequestParameters,
+
+  asyncHandler((req, res) => Container.get(MeteoStationController).find(req, res))
+);
+
+meteoStationRouter.get(
+  '/:id',
+  checkSchema({
+    ...findResourceSchema(),
+    ...meteoStationRelationSchema()
+  }),
+  validateRequestParameters,
+  asyncHandler((req, res) => Container.get(MeteoStationController).findById(req, res))
+);
+
+meteoStationRouter.post(
+  '/',
+  checkSchema(meteoStationSchema()),
+  validateRequestParameters,
+  asyncHandler((req, res) => Container.get(MeteoStationController).create(req, res))
+);
+
+meteoStationRouter.put(
+  '/:id',
+  checkSchema({
+    ...findResourceSchema(),
+    ...meteoStationSchema()
+  }),
+  validateRequestParameters,
+  asyncHandler((req, res) => Container.get(MeteoStationController).update(req, res))
+);
+
+meteoStationRouter.delete(
+  '/:id',
+  checkSchema(findResourceSchema()),
+  validateRequestParameters,
+  asyncHandler((req, res) => Container.get(MeteoStationController).delete(req, res))
 );

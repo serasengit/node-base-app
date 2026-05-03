@@ -3,12 +3,12 @@ import StatusCode from 'status-code-enum';
 import { BaseError, ErrorContext } from './base-error';
 
 /**
- * @summary NotFoundError
- * @description NotFoundError error class
+ * @summary ConflictError
+ * @description ConflictError error class
  *
  */
-export class NotFoundError extends BaseError {
+export class ConflictError extends BaseError {
   constructor(code: APICode, context?: ErrorContext) {
-    super(code, StatusCode.ClientErrorNotFound, context);
+    super(code, StatusCode.ClientErrorConflict, context);
   }
 }

@@ -1,50 +1,102 @@
 # ---- Base Node ----
-FROM node:alpine as base
-# Set working directory
-WORKDIR src/
-# Install prerequisites
-RUN apk --no-cache add curl
+    FROM node:20-slim AS base
 
-# ---- Dependencies ----
-FROM base AS dependencies
-# Copy configs to /app folder
-COPY ["package.json", "package-lock.json*",".eslintrc.json",".eslintignore","tsconfig.json","server.ts", "./"]
-COPY app /src/app
+    # Set working directory
+    WORKDIR /src
+    
+    # Install curl (for potential use)
+    RUN apt-get update && apt-get install -y curl
+    
+    # ---- Dependencies ----
+    FROM base AS dependencies
+    
+    # Copy package files and configs
+    COPY package*.json ./
+    COPY tsconfig.json server.ts package.json package-lock.json* knexfile.ts ./
+    
+    # Copy application source files
+    COPY app ./app
+    
+    # Install all dependencies (including dev)
+    RUN npm install
+    
+    # ---- BBDD Migrations ----
+    
+    # Create a new stage named 'migrations' based on the 'dependencies' stage
+    FROM dependencies AS migrations
+    
+    # Copy database scripts to /src/app and /src/db/${NODE_ENV}  respectively
+    COPY /db/${NODE_ENV}  /src/db/${NODE_ENV} 
+    
+    # Execute database migrations with POSIX-compatible env expansion inside Linux containers
+    CMD sh -c 'node -r dotenv/config ./node_modules/knex/bin/cli.js migrate:rollback dotenv_config_path=environments/.env.${NODE_ENV} && node -r dotenv/config ./node_modules/knex/bin/cli.js migrate:latest dotenv_config_path=environments/.env.${NODE_ENV} && node -r dotenv/config ./node_modules/knex/bin/cli.js seed:run dotenv_config_path=environments/.env.${NODE_ENV}'
+    
+    
+    # ---- Unit Tests ----
 
-# ---- Unit Tests ----
-# Run linters, setup and tests
-FROM dependencies AS unit-tests
-# Copy necessary config files for unit tests execution
-COPY ["package.json", "package-lock.json*",".eslintrc.json",".eslintignore","tsconfig.json","server.ts", "./"] --from=dependencies
-# Clean cached node_modules
-RUN npm cache clean --force
-# Install ALL node_modules, including 'devDependencies'
-RUN npm install
-# Execute build
-RUN npm run build
-# Copy App sources
-COPY . .
-# Execute tests
-CMD  sh -c 'npm run test'
+    # Create a new stage named 'unit-tests' based on the 'dependencies' stage
+    FROM dependencies AS unit-tests
 
-# ---- App ----
-FROM base AS app
-# Copy production node_modules (excepting unit-tests and migrations configuration files)
-COPY ["package.json", "package-lock.json*","tsconfig.json","server.ts", "./"] --from=dependencies
-# Copy proyect folders (excepting test, migrations and environments folders)
-COPY --from=dependencies /src/app/api-messages /src/app/api-messages 
-COPY --from=dependencies /src/app/controllers /src/app/controllers 
-COPY --from=dependencies /src/app/dtos /src/app/dtos 
-COPY --from=dependencies /src/app/repositories /src/app/repositories 
-COPY --from=dependencies /src/app/routes /src/app/routes
-COPY --from=dependencies /src/app/schemas /src/app/schemas
-COPY --from=dependencies /src/app/services /src/app/services
-COPY --from=dependencies /src/app/mappers /src/app/mappers
-# Clean cached node_modules
-RUN npm cache clean --force
-# Install app dependencies
-RUN npm install --silent --production && mv node_modules ./
-# Execute build
-RUN  npm run build
-# Specify what command it'll execute when container is created
-CMD node dist/server.js
+    # Copy application sources to the container (including tests)
+    COPY  app/api-messages /src/app/api-messages 
+    COPY  app/bootstrap /src/app/bootstrap
+    COPY  app/controllers /src/app/controllers 
+    COPY  app/dtos /src/app/dtos 
+    COPY  app/generators /src/app/generators
+    COPY  app/jobs /src/app/jobs 
+    COPY  app/public /src/app/public
+    COPY  app/repositories /src/app/repositories 
+    COPY  app/routes /src/app/routes
+    COPY  app/schemas /src/app/schemas
+    COPY  app/services /src/app/services
+    COPY  app/jobs /src/app/jobs 
+    COPY  app/utils /src/app/utils
+    COPY  app/tests /src/app/tests
+    COPY  certs /src/certs
+
+    # Execute the build process
+    RUN npm run build
+
+    # Execute linter,unit tests and coverage reporting checking
+    CMD sh -c "npm run lint && \
+    npm run test:coverage --env=${NODE_ENV} && \
+    npm run test:coverage:check -- --statements  ${MIN_COVERAGE_PERCENTAGE} --lines ${MIN_COVERAGE_PERCENTAGE} --functions ${MIN_COVERAGE_PERCENTAGE}"
+
+    # ---- App ----
+    FROM base AS app
+    
+    # Set working directory
+    WORKDIR /src
+    
+    # Copy production node_modules from dependencies stage
+    COPY --from=dependencies /src/node_modules ./node_modules
+    
+    # Copy necessary project files
+    COPY --from=dependencies /src/package*.json ./
+    COPY --from=dependencies /src/tsconfig.json ./
+    COPY --from=dependencies /src/knexfile.ts ./
+    COPY --from=dependencies /src/server.ts ./
+    
+    # Copy application folders from dependencies stage
+    COPY --from=dependencies /src/app/api-messages ./app/api-messages
+    COPY --from=dependencies /src/app/bootstrap ./app/bootstrap
+    COPY --from=dependencies /src/app/controllers ./app/controllers
+    COPY --from=dependencies /src/app/docs ./app/docs
+    COPY --from=dependencies /src/app/dtos ./app/dtos
+    COPY --from=dependencies /src/app/repositories ./app/repositories
+    COPY --from=dependencies /src/app/public ./app/public
+    COPY --from=dependencies /src/app/routes ./app/routes
+    COPY --from=dependencies /src/app/schemas ./app/schemas
+    COPY --from=dependencies /src/app/services ./app/services
+    COPY --from=dependencies /src/app/logger ./app/logger
+    COPY --from=dependencies /src/app/middlewares ./app/middlewares
+
+    # Build the application
+    RUN npm run build
+
+    # Copy static asset required at runtime into the compiled dist tree
+    COPY --from=dependencies /src/app/public/logo-consorcio-small.png ./dist/app/public/logo-consorcio-small.png
+    
+    # Specify default command to run the app
+    CMD ["node", "dist/server.js"]
+    
