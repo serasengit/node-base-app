@@ -67,3 +67,13 @@
     at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 19:24:37 [error]: Error in GET /api/v1/meteo-stations/2555: code: meteo_station_not_found, message: Meteorological station not found, details: undefined, errors: undefined, stack: Error
+    at MeteoStationService.findById (C:\Workspace\node-base-app\app\features\meteo-stations\services\meteo-station-service.ts:32:36)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MeteoStationController.findById (C:\Workspace\node-base-app\app\features\meteo-stations\controllers\meteo-station-controller.ts:19:26)
+2026-05-03 19:27:20 [error]: Error in GET /api/v1/meteo-stations/1?include=cityy: code: client_error_unprocessable_entity, message: Client error unprocessable entity, details: undefined, errors: [{"code":"invalid_parameter","message":"Invalid parameter: include"}], stack: Error
+    at validateRequestParameters (C:\Workspace\node-base-app\app\middlewares\error-handler.ts:33:11)
+    at Layer.handle [as handle_request] (C:\Workspace\node-base-app\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Workspace\node-base-app\node_modules\express\lib\router\route.js:149:13)
+    at middleware (C:\Workspace\node-base-app\node_modules\express-validator\lib\middlewares\check.js:16:13)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)

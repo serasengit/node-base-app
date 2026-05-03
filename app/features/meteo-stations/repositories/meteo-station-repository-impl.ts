@@ -118,9 +118,9 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
     const { filters = {}, pagination = {}, relations = {} } = params;
 
     // Build the base query.
-    // The createdBy relation is joined to allow text search by creator name.
+    // The city relation is joined to allow text search by creator name.
     const qb = MeteoStationSchema.query().distinct('meteoStations.id').select('meteoStations.*');
-    qb.leftJoinRelated('[createdBy, updatedBy]');
+    qb.leftJoinRelated('[city]');
 
     this.applyRelations(qb, relations);
     this.applyFilters(qb, filters);
@@ -147,13 +147,8 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
     if (!Array.isArray(relations.include)) return;
 
     // Load creator user relation when requested.
-    if (relations.include.includes('createdBy')) {
-      qb.withGraphFetched('createdBy');
-    }
-
-    // Load updater user relation when requested.
-    if (relations.include.includes('updatedBy')) {
-      qb.withGraphFetched('updatedBy');
+    if (relations.include.includes('city')) {
+      qb.withGraphFetched('city');
     }
   }
 
@@ -174,10 +169,14 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
         .orWhereRaw('CAST(meteo_stations.latitude AS TEXT) ILIKE ?', [search])
         .orWhereRaw('CAST(meteo_stations.longitude AS TEXT) ILIKE ?', [search])
 
-        // Search by creator user name.
-        .orWhere('createdBy.name', 'ilike', search)
-        // Search by updater user name.
-        .orWhere('updatedBy.name', 'ilike', search);
+        // Search by city name.
+        .orWhere('city.name', 'ilike', search)
+
+        // Search by country name.
+        .orWhere('city.country', 'ilike', search)
+
+        // Search by province name.
+        .orWhere('city.province', 'ilike', search);
     });
   }
 

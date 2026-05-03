@@ -1,19 +1,17 @@
 import { MeteoStationDTO } from '@features/meteo-stations/dtos/meteo-station-dto';
 import { JSONSchema, Model, RelationMappings } from 'objection';
-import UserSchema from '../../users/schemas/user-schema';
+import { default as CitySchema } from '../../cities/schemas/city-schema';
 
 export default class MeteoStationSchema extends Model {
   id!: number;
   name!: string;
   longitude!: number;
   latitude!: number;
-  createdById!: number;
-  updatedById!: number;
+  cityId!: number;
   createdAt!: Date;
   updatedAt!: Date;
   // Relations
-  createdBy?: UserSchema;
-  updatedBy?: UserSchema;
+  city?: CitySchema;
 
   $beforeUpdate(): void {
     this.updatedAt = new Date();
@@ -55,11 +53,7 @@ export default class MeteoStationSchema extends Model {
         format: 'date-time'
       },
 
-      createdById: {
-        type: 'integer'
-      },
-
-      updatedById: {
+      cityId: {
         type: 'integer'
       }
     }
@@ -67,20 +61,12 @@ export default class MeteoStationSchema extends Model {
 
   static get relationMappings(): RelationMappings {
     return {
-      createdBy: {
+      city: {
         relation: Model.BelongsToOneRelation,
-        modelClass: UserSchema,
+        modelClass: CitySchema,
         join: {
-          from: 'meteoStations.createdById',
-          to: 'users.id'
-        }
-      },
-      updatedBy: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: UserSchema,
-        join: {
-          from: 'meteoStations.updatedById',
-          to: 'users.id'
+          from: 'meteoStations.cityId',
+          to: 'cities.id'
         }
       }
     };
@@ -93,8 +79,7 @@ export default class MeteoStationSchema extends Model {
       longitude: meteoStationSchema.longitude,
       latitude: meteoStationSchema.latitude
     };
-    if (meteoStationSchema.createdBy) meteoStation.createdBy = UserSchema.toDTO(meteoStationSchema.createdBy);
-    if (meteoStationSchema.updatedBy) meteoStation.updatedBy = UserSchema.toDTO(meteoStationSchema.updatedBy);
+    if (meteoStationSchema.city) meteoStation.city = CitySchema.toDTO(meteoStationSchema.city);
     return meteoStation;
   }
 }

@@ -1,9 +1,8 @@
-import { Language } from '@api-messages/api-messages';
 import { BaseController } from '@core/controllers/base-controller';
-import { QueryFilters, QueryParams, QueryRelations, QueryResponse } from '@core/repositories/base-repository';
+import { QueryParams, QueryRelations, QueryResponse } from '@core/repositories/base-repository';
 import { MeteoStationDTO } from '@features/meteo-stations/dtos/meteo-station-dto';
-import express from 'express';
 import MeteoStationService from '@features/meteo-stations/services/meteo-station-service';
+import express from 'express';
 import StatusCode from 'status-code-enum';
 import { Inject, Service } from 'typedi';
 
@@ -19,8 +18,7 @@ class MeteoStationController extends BaseController {
     const meteoStation = await this.meteoStationService.findById(this.parseNumber(req.params.id), <QueryParams>{
       relations: <QueryRelations>{
         include: this.parseArray(req.query.include as string)
-      },
-      filters: <QueryFilters>{ language: (req.headers.language ?? Language.Spanish) as Language }
+      }
     });
     return res.status(StatusCode.SuccessOK).send(meteoStation);
   }

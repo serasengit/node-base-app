@@ -1,5 +1,5 @@
+import { CityDTO } from '@features/cities/dtos/city-dto';
 import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-schema';
-import { UserDTO } from '@features/users/dtos/user-dto';
 
 export class MeteoStationDTO {
   id: number;
@@ -9,8 +9,7 @@ export class MeteoStationDTO {
   createdAt?: Date;
   updatedAt?: Date;
   // Relations
-  createdBy?: UserDTO;
-  updatedBy?: UserDTO;
+  city?: CityDTO;
 
   static toSchema(meteoStation: MeteoStationDTO): MeteoStationSchema {
     const meteoStationSchema = new MeteoStationSchema();
@@ -21,6 +20,8 @@ export class MeteoStationDTO {
     meteoStationSchema.latitude = meteoStation.latitude;
     meteoStationSchema.createdAt = meteoStation.createdAt;
     meteoStationSchema.updatedAt = meteoStation.updatedAt;
+
+    if (meteoStation.city) meteoStationSchema.city = CityDTO.toSchema(meteoStation.city);
 
     return meteoStationSchema;
   }

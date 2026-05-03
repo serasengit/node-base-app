@@ -13,8 +13,7 @@ export interface QueryFilters {
  * Generic relation loading configuration.
  *
  * Common usage:
- * - include: ['createdBy', 'updatedBy']
- * - withCreatedBy: true
+ * - include: ['city']
  */
 export interface QueryRelations {
   [key: string]: boolean | string[] | undefined;

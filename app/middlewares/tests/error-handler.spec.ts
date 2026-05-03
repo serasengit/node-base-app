@@ -1,12 +1,13 @@
 import { APICode, Language } from '@api-messages/api-messages';
 import { BaseError } from '@api-messages/errors/base-error';
-import { body } from 'express-validator';
 import { expect } from 'chai';
+import { body } from 'express-validator';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import { Container } from 'typedi';
 
 import logger from '@logger/logger';
+import { Logger } from 'winston';
 import { HttpError, errorHandler, notFoundHandler, validateRequestParameters } from '../error-handler';
 
 type TranslationCall = {
@@ -56,8 +57,8 @@ describe('Error Handler Middleware', () => {
   beforeEach(() => {
     translationCalls = [];
 
-    logger.error = () => logger;
-    logger.warn = () => logger;
+    logger.error = (): Logger => logger;
+    logger.warn = (): Logger => logger;
 
     Container.get = ((identifier: unknown) => {
       if (identifier) {
@@ -84,7 +85,10 @@ describe('Error Handler Middleware', () => {
       const req = createRequest({ body: { name: 'Meteo Test' } });
       let nextCalled = false;
 
-      await body('name').notEmpty().withMessage('Name is required').run(req as never);
+      await body('name')
+        .notEmpty()
+        .withMessage('Name is required')
+        .run(req as never);
 
       validateRequestParameters(req as never, {} as never, () => {
         nextCalled = true;
@@ -96,7 +100,10 @@ describe('Error Handler Middleware', () => {
     it('should throw BaseError when validation fails', async () => {
       const req = createRequest({ body: { name: '' } });
 
-      await body('name').notEmpty().withMessage('Name is required').run(req as never);
+      await body('name')
+        .notEmpty()
+        .withMessage('Name is required')
+        .run(req as never);
 
       try {
         validateRequestParameters(req as never, {} as never, () => undefined);

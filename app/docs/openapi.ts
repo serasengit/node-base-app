@@ -163,8 +163,7 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
             latitude: { type: 'number' },
             createdAt: { type: 'string', format: 'date-time', nullable: true },
             updatedAt: { type: 'string', format: 'date-time', nullable: true },
-            createdBy: { $ref: '#/components/schemas/User' },
-            updatedBy: { $ref: '#/components/schemas/User' }
+            city: { $ref: '#/components/schemas/City' }
           }
         },
         MeteoStationWriteRequest: {

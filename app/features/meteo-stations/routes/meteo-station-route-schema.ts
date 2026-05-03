@@ -28,7 +28,7 @@ export const findMeteoStationsSchema = (): Schema<DefaultSchemaKeys> => ({
  * Validation schema for optional meteo station relations.
  *
  * The include query parameter supports comma-separated values, for example:
- * include=createdBy,updatedBy
+ * include=city
  */
 export const meteoStationRelationSchema = (): Schema<DefaultSchemaKeys> => ({
   include: {
@@ -60,7 +60,7 @@ export const meteoStationRelationSchema = (): Schema<DefaultSchemaKeys> => ({
     // Validate that only supported relations can be requested.
     custom: {
       options: (value: string[]): boolean => {
-        const allowedRelations = new Set(['createdBy', 'updatedBy']);
+        const allowedRelations = new Set(['city']);
 
         return value.every((relation) => allowedRelations.has(relation));
       },

@@ -73,7 +73,10 @@ async function cleanupTestStations(): Promise<void> {
   await db('meteo_stations').where('name', 'like', `${TEST_PREFIX}%`).del();
 }
 
-function expectStationCoordinates(body: { longitude: string | number; latitude: string | number }, expected: { longitude: number; latitude: number }): void {
+function expectStationCoordinates(
+  body: { longitude: string | number; latitude: string | number },
+  expected: { longitude: number; latitude: number }
+): void {
   expect(Number(body.longitude)).to.equal(expected.longitude);
   expect(Number(body.latitude)).to.equal(expected.latitude);
 }
@@ -133,12 +136,11 @@ describe('Meteo Stations API', function () {
       const station = await getSeededStation();
 
       const response = await chai.request(app).get(`${API_ENDPOINT}/${station.id}`).query({
-        include: 'createdBy,updatedBy'
+        include: 'city'
       });
 
       expect(response).to.have.status(StatusCode.SuccessOK);
-      expect(response.body).to.have.property('createdBy');
-      expect(response.body).to.have.property('updatedBy');
+      expect(response.body).to.have.property('city');
     });
 
     it('should return 422 when id is invalid', async () => {
