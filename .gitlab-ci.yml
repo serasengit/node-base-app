@@ -190,6 +190,9 @@ zap:
     # Create the local directory where ZAP reports will be stored.
     - mkdir -p zap-reports
 
+    # Allow the ZAP container user to write reports into the mounted directory.
+    - chmod 777 zap-reports
+
     # Print Docker versions for troubleshooting.
     - docker version
     - docker compose version
@@ -246,6 +249,7 @@ zap:
       done
 
     # Run ZAP inside the same Docker Compose network so it can reach the app service by name.
+    # The -g option is intentionally omitted to avoid writing gen.conf when it is not needed.
     - |
       docker run --rm \
         --network "${COMPOSE_PROJECT_NAME}_default" \
@@ -253,7 +257,6 @@ zap:
         zaproxy/zap-stable \
         zap-baseline.py \
           -t "$ZAP_TARGET_URL" \
-          -g gen.conf \
           -I \
           -r zap_report.html \
           -x zap_report.xml
