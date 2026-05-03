@@ -11,7 +11,7 @@ export const startApiRuntime = (): express.Express => {
   const { apiRouter } = loadModule('@core/routes/api-routes') as typeof import('@core/routes/api-routes');
 
   /* -------------------------------------------------------------------------- */
-  /*                            HTTP API RUNTIME                                 */
+  /*                              HTTP API RUNTIME                              */
   /* -------------------------------------------------------------------------- */
 
   const app = express();
@@ -21,19 +21,9 @@ export const startApiRuntime = (): express.Express => {
 
   const host = process.env.SERVER_HOST || '0.0.0.0';
   const port = Number.parseInt(process.env.SERVER_PORT || '3000', 10);
+  const serverApi = process.env.SERVER_API || 'api/v1';
 
-  // In production, the API is expected to be behind a trusted reverse proxy that handles TLS termination and client certificate validation.
-  const trustedProxies = (process.env.TRUSTED_PROXY_IPS || '')
-    .split(',')
-    .map((ip) => ip.trim())
-    .filter(Boolean);
-
-  // Trust only explicitly configured reverse proxies.
-  // This allows req.ip, req.hostname and req.protocol to be resolved from X-Forwarded-* headers
-  // only when the request comes through a trusted proxy.
-  app.set('trust proxy', trustedProxies);
-
-  // CORS configuration
+  // CORS configuration.
   const allowedOrigins =
     process.env.DOMAIN_WHITELIST?.split(',')
       .map((origin) => origin.trim())
@@ -47,23 +37,28 @@ export const startApiRuntime = (): express.Express => {
     optionsSuccessStatus: 204
   };
 
-  // Middlewares
+  // Middlewares.
   app.use(json());
   app.use(cors(corsOptions));
-  app.use(`/${process.env.SERVER_API}`, apiRouter);
+
+  // API routes.
+  app.use(`/${serverApi}`, apiRouter);
+
+  // Error handlers.
   app.use(notFoundHandler);
   app.use(errorHandler);
 
-  // Create HTTP server
+  // Main HTTP server.
   http.createServer(app).listen(port, host, () => {
     logger.info(`🚀 API running at http://${host}:${port}`);
   });
 
   /* -------------------------------------------------------------------------- */
-  /*                              HEALTHCHECK API                                */
+  /*                              HEALTHCHECK API                               */
   /* -------------------------------------------------------------------------- */
 
   const healthApp = express();
+  const healthPort = Number.parseInt(process.env.HEALTHCHECK_PORT || '3005', 10);
 
   healthApp.get('/health', (_req, res) => {
     res.status(200).json({
@@ -72,8 +67,6 @@ export const startApiRuntime = (): express.Express => {
       timestamp: new Date().toISOString()
     });
   });
-
-  const healthPort = Number.parseInt(process.env.HEALTHCHECK_PORT || '3002', 10);
 
   http.createServer(healthApp).listen(healthPort, host, () => {
     logger.info(`❤️ Healthcheck running at http://${host}:${healthPort}/health`);
