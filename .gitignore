@@ -56,7 +56,6 @@ package-lock.json
 #PostgreSQL
 /postgres-data
 
-
 #Logs
 /logs/*
 !/logs/.gitkeep
