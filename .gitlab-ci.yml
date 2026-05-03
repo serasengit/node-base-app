@@ -1,69 +1,78 @@
 stages:
-  - dependencies # First stage: Install dependencies
-  - build # Second stage: Build the project
-  - test # Third stage: Run tests and check coverage
-  - sonar # Fourth stage: Run SonarQube analysis
-  - deploy # Fifth stage: Deploy the application
-  - zap # Sixth stage: Run ZAP security analysis
+  - dependencies # First stage: install project dependencies.
+  - build # Second stage: build the TypeScript project.
+  - test # Third stage: run tests and validate coverage.
+  - sonar # Fourth stage: run SonarQube static analysis.
+  - zap # Fifth stage: run ZAP security analysis.
 
-# Stage for installing dependencies
+# Install project dependencies.
 dependencies:
   stage: dependencies
-  image: node:20-slim # Use Node.js 20-slim Docker image
+  image: node:20-slim # Use the same Node.js major version as the Dockerfile.
   script:
-    - npm ci --include=dev # Install project dependencies using clean install
+    - npm ci --include=dev # Install dependencies from package-lock.json, including dev dependencies.
   cache:
     key:
       files:
-        - package-lock.json # Cache based on the package-lock.json file
+        - package-lock.json # Rebuild the cache when package-lock.json changes.
     paths:
-      - node_modules # Cache node_modules to speed up future builds
-    policy: pull-push # Pull cache before running the job and push cache after
-  only:
-    - merge_requests # Only run this job for merge requests
-    - develop # Also run on the develop branch
-    - main # Also run on the main branch
+      - node_modules # Cache node_modules to speed up future pipeline executions.
+    policy: pull-push # Restore the cache before the job and update it afterwards.
   artifacts:
     paths:
-      - node_modules/ # Save node_modules as an artifact for use in later stages
-# Stage for building the project
+      - node_modules/ # Make node_modules available to downstream jobs.
+    expire_in: 1 hour
+  only:
+    - merge_requests # Run this job for merge requests.
+    - develop # Run this job on the develop branch.
+    - main # Run this job on the main branch.
+
+# Build the TypeScript project.
 build:
   stage: build
-  image: node:24.0.1 # Use Node.js 24.0.1 Docker image
+  image: node:20-slim # Use the same Node.js major version as the Dockerfile.
+  needs:
+    - job: dependencies # Reuse dependencies installed by the dependencies job.
+      artifacts: true
   script:
-    - npm run build # Run the build command
+    - npm run build # Compile TypeScript into the dist directory.
   artifacts:
     paths:
-      - $CI_PROJECT_DIR/dist # Save the dist directory as an artifact
+      - dist/ # Store the compiled application as a pipeline artifact.
+    expire_in: 1 hour
   cache:
     key:
       files:
-        - package-lock.json # Cache based on the package-lock.json file
+        - package-lock.json # Use the same dependency cache key as the dependencies job.
     paths:
-      - node_modules # Cache node_modules to speed up future builds
-    policy: pull # Only pull the cache before running the job (no pushing)
-  needs:
-    - job: dependencies # This job depends on the dependencies job
-      artifacts: true # Make artifacts from the dependencies job available to this job
+      - node_modules # Restore node_modules from cache if available.
+    policy: pull # Only restore the cache; do not update it from this job.
   only:
-    - merge_requests # Only run this job for merge requests
-    - develop # Also run on the develop branch
-    - main # Also run on the main branch
+    - merge_requests # Run this job for merge requests.
+    - develop # Run this job on the develop branch.
+    - main # Run this job on the main branch.
 
-# Stage for running tests and checking code coverage
+# Run tests and validate code coverage.
 test:
   stage: test
-  image: docker:24.0.5-cli # o usa tu propia imagen con node y docker
+  image: docker:24.0.5-cli # Use Docker CLI because this job runs the test stack with Docker Compose.
+
+  # Docker-in-Docker service used to build and run the test containers.
+  # The GitLab runner must be configured with privileged = true.
   services:
-    - docker:dind
+    - name: docker:24.0.5-dind
+      alias: docker
+
   variables:
-    DOCKER_HOST: tcp://docker:2375 # Define the Docker host address
-    DOCKER_TLS_CERTDIR: '' # Disable TLS
+    DOCKER_HOST: tcp://docker:2375 # Docker daemon exposed by the docker:dind service.
+    DOCKER_TLS_CERTDIR: '' # Disable Docker TLS inside the isolated CI network.
+
   before_script:
-    - apk add --no-cache nodejs npm # instala node y npm (alternativa rápida)
-    - npm install # Install project dependencies
+    - apk add --no-cache nodejs npm # Install Node.js and npm in the Docker CLI image.
+    - npm ci --include=dev # Install project dependencies, including dev dependencies.
+
   script:
-    # Start the unit-tests container with the correct environment
+    # Start the unit-tests Compose profile.
     - |
       if ! docker compose --env-file environments/.env.test --profile unit-tests up --build -d; then
         docker compose --env-file environments/.env.test logs migrations
@@ -71,52 +80,52 @@ test:
         exit 1
       fi
 
-    # Get the container ID of the unit-tests service
+    # Get the container ID of the unit-tests service.
     - UNIT_TESTS_CONTAINER=$(docker compose --env-file environments/.env.test ps -q unit-tests)
 
-    # Wait for container to finish
+    # Wait until the unit-tests container finishes.
     - |
       echo "Waiting for unit-tests container ($UNIT_TESTS_CONTAINER) to finish..."
-      while [ "$(docker inspect -f '{{.State.Running}}' "$UNIT_TESTS_CONTAINER")" == "true" ]; do
+      while [ "$(docker inspect -f '{{.State.Running}}' "$UNIT_TESTS_CONTAINER")" = "true" ]; do
         sleep 2
       done
 
-    # Show logs from the service (use service name, not container name)
+    # Print unit test logs for troubleshooting and pipeline visibility.
     - docker compose --env-file environments/.env.test logs unit-tests
 
-    # Get the exit code and fail if non-zero
+    # Read the container exit code and fail the job if tests failed.
     - |
       exit_code=$(docker wait "$UNIT_TESTS_CONTAINER")
       echo "Container exit code: $exit_code"
       if [ "$exit_code" -ne 0 ]; then
         echo "Tests failed."
-        exit $exit_code
+        exit "$exit_code"
       fi
 
-    # Cleanup
-    - docker compose --env-file environments/.env.test down --remove-orphans
-
-    # Clean up containers and orphaned resources
+    # Stop and remove containers created by Docker Compose.
     - docker compose --env-file environments/.env.test down --remove-orphans
 
   artifacts:
+    when: always
     paths:
-      - $CI_PROJECT_DIR/coverage # Save the coverage report as an artifact
+      - coverage/ # Store the coverage report as a pipeline artifact.
+    expire_in: 1 week
+
   cache:
     key:
       files:
-        - package-lock.json # Cache based on the package-lock.json file
+        - package-lock.json # Use the same dependency cache key as the dependencies job.
     paths:
-      - node_modules # Cache node_modules to speed up future builds
-    policy: pull # Only pull the cache before running the job (no pushing)
+      - node_modules # Restore node_modules from cache if available.
+    policy: pull # Only restore the cache; do not update it from this job.
+
   only:
-    - merge_requests # Only run this job for merge requests
-    - develop # Also run on the develop branch
-    - main # Also run on the main branch
+    - merge_requests # Run this job for merge requests.
+    - develop # Run this job on the develop branch.
+    - main # Run this job on the main branch.
 
 # Run SonarQube static code analysis.
 sonar:
-  # Pipeline stage where the SonarQube analysis is executed.
   stage: sonar
 
   # Use the official SonarScanner CLI image so the sonar-scanner command is available.
@@ -124,114 +133,109 @@ sonar:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: ['']
 
-  # Download artifacts from the test job, especially the coverage report.
   needs:
-    - job: test
+    - job: test # Download artifacts from the test job, especially coverage reports.
       artifacts: true
 
-  # Do not fail the full pipeline if SonarQube analysis fails.
-  allow_failure: true
+  allow_failure: true # Do not fail the full pipeline if SonarQube analysis fails.
 
   variables:
-    # Store SonarScanner cache inside the project workspace.
-    SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar'
-
-    # Fetch the full Git history so SonarQube can properly assign blame information.
-    GIT_DEPTH: '0'
+    SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar' # Store SonarScanner cache inside the project workspace.
+    GIT_DEPTH: '0' # Fetch full Git history so SonarQube can assign blame information.
 
   script:
-    # Run SonarScanner using sonar-project.properties and CI variables.
-    - sonar-scanner
+    - sonar-scanner # Run SonarScanner using sonar-project.properties and CI variables.
 
   cache:
-    # Reuse SonarScanner cache between pipeline executions.
-    key: sonar-cache
+    key: sonar-cache # Reuse SonarScanner cache between pipeline executions.
     paths:
       - .sonar/cache
 
-  # Run SonarQube analysis only for merge requests and the main branch.
   only:
-    - merge_requests
-    - main
+    - merge_requests # Run SonarQube analysis for merge requests.
+    - main # Run SonarQube analysis on the main branch.
 
-# Stage for deploying the application
-deploy:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache sshpass openssh-client # Install sshpass and ssh client tools in Alpine container
+# Run ZAP security analysis against the containerized application.
+zap:
+  stage: zap
+  image: docker:24.0.5-cli # Use Docker CLI because this job starts the application stack with Docker Compose.
+
+  # Docker-in-Docker service used to build and run the application containers.
+  # The GitLab runner must be configured with privileged = true.
+  services:
+    - name: docker:24.0.5-dind
+      alias: docker
+
   variables:
-    DOCKER_CONTAINER_NAME: node-base-app-back-end-pre # Define the Docker container name for deployment
+    DOCKER_HOST: tcp://docker:2375 # Docker daemon exposed by the docker:dind service.
+    DOCKER_TLS_CERTDIR: '' # Disable Docker TLS inside the isolated CI network.
+    COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}' # Use a unique Compose project name to avoid collisions.
+    NODE_ENV: test # Runtime environment used by the application stack.
+    ZAP_TARGET_URL: 'http://app:3000/api/v1' # Application URL inside the Docker Compose network.
+
+  before_script:
+    - mkdir -p zap-reports # Create the ZAP workspace where reports will be written.
+    - docker version # Print Docker version for troubleshooting.
+    - docker compose version # Print Docker Compose version for troubleshooting.
+
   script:
-    # SSH into the server and deploy the application
+    # Start PostgreSQL first.
+    - docker compose --env-file environments/.env.test --profile app up --build -d postgres
+
+    # Run database migrations and seeds using the migrations container.
+    - docker compose --env-file environments/.env.test --profile migrations run --rm migrations
+
+    # Start the application container.
+    - docker compose --env-file environments/.env.test --profile app up --build -d app
+
+    # Wait until the application healthcheck is ready from inside the app container.
     - |
-      sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << EOF
-      set -x
-      cd /home/node-base-app/node-base-app-back-end
+      echo "Waiting for application healthcheck..."
+      for i in $(seq 1 60); do
+        if docker compose --env-file environments/.env.test exec -T app curl -fsS http://127.0.0.1:3005/health; then
+          echo "Application is ready."
+          break
+        fi
 
-      # Set Git remote to use token authentication
-      sudo git remote set-url origin https://$GIT_USERNAME:$GIT_TOKEN@git.adasasistemas.com/ad10231-plataforma-saneamiento-care/node-base-app-back-end.git
-
-      # Switch to the correct branch
-      sudo git checkout main
-
-      # Check git status
-      sudo git status
-
-      # Backup certs folder
-      sudo git stash push -m "backup certs" certs/
-
-      # Reset and pull the latest changes
-      sudo git fetch origin
-      sudo git reset --hard origin/main
-      sudo git pull
-
-      # Restore certs folder
-      sudo git stash pop || true
-
-      # Install dependencies
-      sudo npm install
-
-      # Stop containers if running
-      sudo docker stop ${DOCKER_CONTAINER_NAME}-app || true
-      sudo docker stop ${DOCKER_CONTAINER_NAME}-postgres || true
-
-      # Start migrations container
-      sudo docker compose --env-file environments/.env.pre --profile migrations up --build -d
-
-      # Wait for Postgres
-      until sudo docker exec ${DOCKER_CONTAINER_NAME}-postgres pg_isready -U postgres; do
-        echo "Waiting for PostgreSQL to be ready..."
+        echo "Application is not ready yet. Retry $i/60..."
         sleep 2
+
+        if [ "$i" -eq 60 ]; then
+          echo "Application did not become ready in time."
+          docker compose --env-file environments/.env.test logs app
+          exit 1
+        fi
       done
 
-      # Start app container
-      sudo docker compose --env-file environments/.env.pre --profile app up --build -d
+    # Run ZAP inside the same Docker Compose network so it can reach the app service by name.
+    - |
+      docker run --rm \
+        --network "${COMPOSE_PROJECT_NAME}_default" \
+        -v "$CI_PROJECT_DIR/zap-reports:/zap/wrk:rw" \
+        zaproxy/zap-stable \
+        zap-baseline.py \
+          -t "$ZAP_TARGET_URL" \
+          -g gen.conf \
+          -I \
+          -r zap_report.html \
+          -x zap_report.xml
 
-      EOF
-  only:
-    - main # Only run on the main branch
-  allow_failure: false # Fail the pipeline if the deployment fails
-  when: manual # Allow manual trigger of the deployment job
+  after_script:
+    - docker compose --env-file environments/.env.test logs app || true # Print app logs even when the job fails.
+    - docker compose --env-file environments/.env.test down --remove-orphans --volumes || true # Clean up containers, networks and volumes.
 
-# ZAP audit stage
-zap:
-  stage: zap # Define the stage for ZAP analysis
-  image:
-    name: zaproxy/zap-stable # Use ZAP image
-  before_script:
-    - mkdir -p /zap/wrk # Create a directory for ZAP workspace
-  allow_failure: false # Fail the pipeline if ZAP scan fails
-  script:
-    - zap-baseline.py -t "https://$SSH_HOST:$SERVER_PORT" -g gen.conf -I -r zap_report.html -x zap.out # Run ZAP baseline scan
-    - cp /zap/wrk/zap_report.html zap_report.html # Copy ZAP report to workspace
   artifacts:
-    when: always # Archive artifacts even if the job fails
+    when: always
     paths:
-      - zap.out # Archive ZAP report
-      - zap_report.html # Archive ZAP report
+      - zap-reports/zap_report.html # Store the HTML ZAP report.
+      - zap-reports/zap_report.xml # Store the XML ZAP report.
+    expire_in: 1 week
+
   only:
-    - main # Also run on the main branch
+    - merge_requests # Run this job for merge requests.
+    - develop # Run this job on the develop branch.
+    - main # Run this job on the main branch.
+
   needs:
-    - job: deploy # Make sure zap depends on deploy job
-      optional: false # This job is required for the pipeline to succeed
+    - job: build # Ensure the project builds before running ZAP.
+      artifacts: true
