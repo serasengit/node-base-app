@@ -79,7 +79,7 @@ services:
     env_file:
       - environments/.env.test
     environment:
-      POSTGRES_HOST: care-wastewater-control-center-test-postgres # Replace with the name of the Postgres service
+      POSTGRES_HOST: node-base-app-test-postgres # Replace with the name of the Postgres service
     # Dependency declaration on the migrations service, waiting for it to complete successfully
     depends_on:
       migrations:
@@ -120,15 +120,12 @@ services:
     environment:
       IS_DOCKER: 'true'
       LOGS_FOLDER: /src/logs/app
-      DOCUMENTS_FOLDER: /src/documents/app
     # Port mapping from host machine to container
     ports:
       - '${SERVER_PORT}:${SERVER_PORT}'
     # Volume mapping from Docker named volumes to container for logging and documents
     volumes:
       - server-logs:/src/logs/app
-      - server-documents:/src/documents/app
-      - ./certs:/src/dist/certs
     # Network configuration
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -141,8 +138,6 @@ services:
       retries: 3
     # Dependency declaration on required services
     depends_on:
-      apprise:
-        condition: service_started
       postgres:
         condition: service_healthy
 

@@ -1,13 +1,10 @@
 import { APICode } from '@api-messages/api-messages';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
-import * as dotenv from 'dotenv';
 import { knex, Knex } from 'knex';
 import { after, afterEach, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import app from '../../../../server';
-
-dotenv.config({ path: 'environments/.env.test' });
 
 chai.use(chaiHttp);
 
