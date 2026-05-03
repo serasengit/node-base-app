@@ -1,0 +1,2 @@
+2026-05-03 17:33:20 [error]: Error in GET /api/v1/meteo-stations/%7B%7BmeteoStationId%7D%7D: client_error_unprocessable_entity
+2026-05-03 17:33:22 [error]: Error in GET /api/v1/meteo-stations/%7B%7BmeteoStationId%7D%7D: client_error_unprocessable_entity

@@ -1,4 +1,4 @@
-import { RepositoryRegister } from '@repositories/repository-register';
+import { RepositoryRegister } from '@core/repositories/repository-register';
 import Knex from 'knex';
 import { Model } from 'objection';
 import { knexConfig } from '../../knexfile';

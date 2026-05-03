@@ -23,15 +23,13 @@
     "resolveJsonModule": true,
     "typeRoots": ["node_modules/@types"],
     "paths": {
-      "@models/*": ["models/*"],
-      "@services/*": ["services/*"],
-      "@controllers/*": ["controllers/*"],
-      "@dtos/*": ["dtos/*"],
-      "@repositories/*": ["repositories/*"],
-      "@schemas/*": ["schemas/*"],
+      "@core/*": ["core/*"],
+      "@features/*": ["features/*"],
+      "@bootstrap/*": ["bootstrap/*"],
+      "@logger/*": ["logger/*"],
       "@api-messages/*": ["api-messages/*"],
       "@middlewares/*": ["middlewares/*"],
-      "@routes/*": ["routes/*"]
+      "@docs/*": ["docs/*"]
     },
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": true

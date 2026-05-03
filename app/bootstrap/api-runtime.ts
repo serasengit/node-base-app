@@ -8,7 +8,7 @@ import { createRequire } from 'module';
 const loadModule = createRequire(__filename);
 
 export const startApiRuntime = (): express.Express => {
-  const { apiRouter } = loadModule('@routes/api-routes') as typeof import('@routes/api-routes');
+  const { apiRouter } = loadModule('@core/routes/api-routes') as typeof import('@core/routes/api-routes');
 
   /* -------------------------------------------------------------------------- */
   /*                            HTTP API RUNTIME                                 */

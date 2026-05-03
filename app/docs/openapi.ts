@@ -1,10 +1,10 @@
-import { findResourceSchema, paginationSchema } from '@routes/schemas/common-route-schema';
+import { findResourceSchema, paginationSchema } from '@core/routes/common-route-schema';
 import {
   findMeteoStationsSchema,
   meteoStationPaginationColumns,
   meteoStationRelationSchema,
   meteoStationSchema
-} from '@routes/schemas/meteo-station-route-schema';
+} from '@features/meteo-stations/routes/meteo-station-route-schema';
 import express from 'express';
 import { ApiRouteMount, collectMountedRouterPaths, mergeOpenApiPaths } from './route-introspection';
 import { jsonRequestBodyFromValidationSchemas, parametersFromValidationSchemas } from './validation-schema-openapi';

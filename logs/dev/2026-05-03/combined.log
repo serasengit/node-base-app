@@ -1,0 +1,6 @@
+2026-05-03 17:15:56 [info]: 🚀 API running at http://0.0.0.0:3000
+2026-05-03 17:15:56 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 17:29:55 [info]: 🚀 API running at http://0.0.0.0:3000
+2026-05-03 17:29:55 [info]: ❤️ Healthcheck running at http://0.0.0.0:3005/health
+2026-05-03 17:33:20 [error]: Error in GET /api/v1/meteo-stations/%7B%7BmeteoStationId%7D%7D: client_error_unprocessable_entity
+2026-05-03 17:33:22 [error]: Error in GET /api/v1/meteo-stations/%7B%7BmeteoStationId%7D%7D: client_error_unprocessable_entity

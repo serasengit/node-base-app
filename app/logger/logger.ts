@@ -17,14 +17,28 @@ const isProduction = rawEnv === 'prod' || rawEnv === 'production';
 // Otherwise, production logs use "info" and non-production logs use "debug".
 const logLevel = process.env.LOG_LEVEL?.trim().toLowerCase() || (isProduction ? 'info' : 'debug');
 
+// Returns the current date using YYYY-MM-DD format.
+const getCurrentDateFolder = (): string => {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
 // Resolve the base folder where log files will be written.
 // If LOGS_FOLDER is defined, it is used as an absolute/resolved path.
-// Otherwise, logs are stored under logs/<environment>.
+// Otherwise, logs are stored under logs/<environment>/<date>.
 const logBaseDir = process.env.LOGS_FOLDER ? path.resolve(process.env.LOGS_FOLDER) : path.resolve('logs', rawEnv);
 
-// Ensure the log directory exists before creating file transports.
+// Resolve the daily log folder.
+const logDateDir = path.join(logBaseDir, getCurrentDateFolder());
+
+// Ensure the daily log directory exists before creating file transports.
 // The recursive option creates parent directories if needed.
-fs.mkdirSync(logBaseDir, { recursive: true });
+fs.mkdirSync(logDateDir, { recursive: true });
 
 // Define the final text format for each log entry.
 // If an error stack is available, it is logged instead of the plain message.
@@ -47,10 +61,10 @@ const logger: Logger = createLogger({
   // - error.log stores only error-level logs.
   transports: [
     new transports.File({
-      filename: path.join(logBaseDir, 'combined.log')
+      filename: path.join(logDateDir, 'combined.log')
     }),
     new transports.File({
-      filename: path.join(logBaseDir, 'error.log'),
+      filename: path.join(logDateDir, 'error.log'),
       level: 'error'
     })
   ]

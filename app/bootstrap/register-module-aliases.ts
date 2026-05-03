@@ -4,13 +4,10 @@ import path from 'path';
 const appRoot = path.join(__dirname, '..');
 
 moduleAlias.addAliases({
-  '@models': path.join(appRoot, 'models'),
-  '@controllers': path.join(appRoot, 'controllers'),
-  '@services': path.join(appRoot, 'services'),
-  '@routes': path.join(appRoot, 'routes'),
-  '@dtos': path.join(appRoot, 'dtos'),
-  '@repositories': path.join(appRoot, 'repositories'),
-  '@schemas': path.join(appRoot, 'schemas'),
+  '@core': path.join(appRoot, 'core'),
+  '@features': path.join(appRoot, 'features'),
+  '@bootstrap': path.join(appRoot, 'bootstrap'),
+  '@logger': path.join(appRoot, 'logger'),
   '@api-messages': path.join(appRoot, 'api-messages'),
   '@middlewares': path.join(appRoot, 'middlewares'),
   '@docs': path.join(appRoot, 'docs'),
