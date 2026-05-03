@@ -1,13 +1,15 @@
 import { errorHandler, notFoundHandler } from '@middlewares/error-handler';
-import { apiRouter } from '@routes/api-routes';
 import cors, { CorsOptions } from 'cors';
 import express, { json } from 'express';
 import http from 'http';
 import logger from 'logger/logger';
+import { createRequire } from 'module';
 
-const normalizeBasePath = (basePath: string): string => `/${basePath.replace(/^\/+|\/+$/g, '')}`;
+const loadModule = createRequire(__filename);
 
 export const startApiRuntime = (): express.Express => {
+  const { apiRouter } = loadModule('@routes/api-routes') as typeof import('@routes/api-routes');
+
   /* -------------------------------------------------------------------------- */
   /*                            HTTP API RUNTIME                                 */
   /* -------------------------------------------------------------------------- */
@@ -19,7 +21,6 @@ export const startApiRuntime = (): express.Express => {
 
   const host = process.env.SERVER_HOST || '0.0.0.0';
   const port = Number.parseInt(process.env.SERVER_PORT || '3000', 10);
-  const apiBasePath = normalizeBasePath(process.env.SERVER_API || 'api/v1');
 
   // In production, the API is expected to be behind a trusted reverse proxy that handles TLS termination and client certificate validation.
   const trustedProxies = (process.env.TRUSTED_PROXY_IPS || '')
@@ -49,13 +50,13 @@ export const startApiRuntime = (): express.Express => {
   // Middlewares
   app.use(json());
   app.use(cors(corsOptions));
-  app.use(apiBasePath, apiRouter);
+  app.use(`/${process.env.SERVER_API}`, apiRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
   // Create HTTP server
   http.createServer(app).listen(port, host, () => {
-    logger.info(`🚀 API running at http://${host}:${port}${apiBasePath}`);
+    logger.info(`🚀 API running at http://${host}:${port}`);
   });
 
   /* -------------------------------------------------------------------------- */

@@ -1,8 +1,9 @@
 import MeteoStationController from '@controllers/meteo-station-controller';
+import { validateRequestParameters } from '@middlewares/error-handler';
 import { Router } from 'express';
 import { checkSchema } from 'express-validator';
-import { validateRequestParameters } from '@middlewares/error-handler';
 import Container from 'typedi';
+import { asyncHandler } from './async-handler';
 import { findResourceSchema, paginationSchema } from './schemas/common-route-schema';
 import {
   findMeteoStationsSchema,
@@ -12,13 +13,9 @@ import {
 } from './schemas/meteo-station-route-schema';
 
 export const meteoStationRouter = Router();
+const meteostationController = Container.get(MeteoStationController);
 
-const asyncHandler =
-  (fn) =>
-  (req, res, next): void => {
-    Promise.resolve(fn(req, res)).catch(next);
-  };
-
+// Get all meteo stations with optional filters, pagination, and relation inclusion
 meteoStationRouter.get(
   '/',
   checkSchema({
@@ -28,9 +25,10 @@ meteoStationRouter.get(
   }),
   validateRequestParameters,
 
-  asyncHandler((req, res) => Container.get(MeteoStationController).find(req, res))
+  asyncHandler((req, res) => meteostationController.find(req, res))
 );
 
+// Get a single meteo station by ID with optional relation inclusion
 meteoStationRouter.get(
   '/:id',
   checkSchema({
@@ -38,16 +36,18 @@ meteoStationRouter.get(
     ...meteoStationRelationSchema()
   }),
   validateRequestParameters,
-  asyncHandler((req, res) => Container.get(MeteoStationController).findById(req, res))
+  asyncHandler((req, res) => meteostationController.findById(req, res))
 );
 
+// Create a new meteo station
 meteoStationRouter.post(
   '/',
   checkSchema(meteoStationSchema()),
   validateRequestParameters,
-  asyncHandler((req, res) => Container.get(MeteoStationController).create(req, res))
+  asyncHandler((req, res) => meteostationController.create(req, res))
 );
 
+// Update an existing meteo station by ID
 meteoStationRouter.put(
   '/:id',
   checkSchema({
@@ -55,12 +55,13 @@ meteoStationRouter.put(
     ...meteoStationSchema()
   }),
   validateRequestParameters,
-  asyncHandler((req, res) => Container.get(MeteoStationController).update(req, res))
+  asyncHandler((req, res) => meteostationController.update(req, res))
 );
 
+// Delete a meteo station by ID
 meteoStationRouter.delete(
   '/:id',
   checkSchema(findResourceSchema()),
   validateRequestParameters,
-  asyncHandler((req, res) => Container.get(MeteoStationController).delete(req, res))
+  asyncHandler((req, res) => meteostationController.delete(req, res))
 );

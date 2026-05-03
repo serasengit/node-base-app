@@ -12,14 +12,14 @@ export default class MeteoStationSchema extends Model {
   createdAt!: Date;
   updatedAt!: Date;
   // Relations
-  createdByUser?: UserSchema;
-  updatedByUser?: UserSchema;
+  createdBy?: UserSchema;
+  updatedBy?: UserSchema;
 
   $beforeUpdate(): void {
     this.updatedAt = new Date();
   }
 
-  static readonly tableName = 'meteo_stations';
+  static readonly tableName = 'meteoStations';
 
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
@@ -67,7 +67,7 @@ export default class MeteoStationSchema extends Model {
 
   static get relationMappings(): RelationMappings {
     return {
-      createdByUser: {
+      createdBy: {
         relation: Model.BelongsToOneRelation,
         modelClass: UserSchema,
         join: {
@@ -75,7 +75,7 @@ export default class MeteoStationSchema extends Model {
           to: 'users.id'
         }
       },
-      updatedByUser: {
+      updatedBy: {
         relation: Model.BelongsToOneRelation,
         modelClass: UserSchema,
         join: {
@@ -93,8 +93,8 @@ export default class MeteoStationSchema extends Model {
       longitude: meteoStationSchema.longitude,
       latitude: meteoStationSchema.latitude
     };
-    if (meteoStationSchema.createdByUser) meteoStation.createdBy = UserSchema.toDTO(meteoStationSchema.createdByUser);
-    if (meteoStationSchema.updatedByUser) meteoStation.updatedBy = UserSchema.toDTO(meteoStationSchema.updatedByUser);
+    if (meteoStationSchema.createdBy) meteoStation.createdBy = UserSchema.toDTO(meteoStationSchema.createdBy);
+    if (meteoStationSchema.updatedBy) meteoStation.updatedBy = UserSchema.toDTO(meteoStationSchema.updatedBy);
     return meteoStation;
   }
 }

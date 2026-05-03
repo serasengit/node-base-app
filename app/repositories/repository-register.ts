@@ -3,7 +3,7 @@ import { MeteoStationRepositoryImpl } from './meteo-station/meteo-station-reposi
 
 export class RepositoryRegister {
   static register(): void {
-    // Please keep it in alphabetical order
+    // MeteoStation
     Container.set('meteoStationRepository', new MeteoStationRepositoryImpl());
   }
 }

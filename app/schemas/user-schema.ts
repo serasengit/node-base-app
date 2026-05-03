@@ -11,8 +11,8 @@ export default class UserSchema extends Model {
   createdAt!: Date;
   updatedAt!: Date;
   // Relations
-  createdByUser?: UserSchema;
-  updatedByUser?: UserSchema;
+  createdBy?: UserSchema;
+  updatedBy?: UserSchema;
 
   $beforeUpdate(): void {
     this.updatedAt = new Date();
@@ -66,7 +66,7 @@ export default class UserSchema extends Model {
 
   static get relationMappings(): RelationMappings {
     return {
-      createdByUser: {
+      createdBy: {
         relation: Model.BelongsToOneRelation,
         modelClass: UserSchema,
         join: {
@@ -74,7 +74,7 @@ export default class UserSchema extends Model {
           to: 'users.id'
         }
       },
-      updatedByUser: {
+      updatedBy: {
         relation: Model.BelongsToOneRelation,
         modelClass: UserSchema,
         join: {
@@ -104,8 +104,8 @@ export default class UserSchema extends Model {
       nif: userSchema.nif,
       email: userSchema.email
     };
-    if (userSchema.createdByUser) user.createdBy = UserSchema.toDTO(userSchema.createdByUser);
-    if (userSchema.updatedByUser) user.updatedBy = UserSchema.toDTO(userSchema.updatedByUser);
+    if (userSchema.createdBy) user.createdBy = UserSchema.toDTO(userSchema.createdBy);
+    if (userSchema.updatedBy) user.updatedBy = UserSchema.toDTO(userSchema.updatedBy);
     return user;
   }
 }

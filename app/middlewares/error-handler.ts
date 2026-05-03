@@ -52,16 +52,13 @@ export function notFoundHandler(req: Request, _res: Response, next: NextFunction
  * Converts application errors into a normalized JSON HTTP response and logs
  * the error context for troubleshooting.
  */
-export function errorHandler(error: Error, req: Request, res: Response): void {
-  // Use the explicit HTTP status for HttpError instances.
-  // Fallback to 500 for unexpected errors.
-  const status = error instanceof HttpError ? error.status : 500;
+export function errorHandler(error: Error, req: Request, res: Response, _next: NextFunction): void {
+  void _next;
+  const status = error instanceof BaseError ? error.status : error instanceof HttpError ? error.status : StatusCode.ServerErrorInternal;
 
-  // Include extra error details only when the error type supports them.
-  const details = error instanceof HttpError ? error.details : undefined;
+  const details = error instanceof BaseError ? error.context : error instanceof HttpError ? error.details : undefined;
 
-  // Fallback message used when the error has no explicit message.
-  const message = error.message || 'Internal server error';
+  const message = error instanceof BaseError ? error.code : error.message || 'Internal server error';
 
   // Log the request method, route and error message.
   logger.error(`Error in ${req.method} ${req.originalUrl}: ${message}`);
