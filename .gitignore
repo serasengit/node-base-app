@@ -46,7 +46,6 @@ testem.log
 Thumbs.db
 
 # Root files
-package-lock.json
 .nyc_output
 
 # Environments
