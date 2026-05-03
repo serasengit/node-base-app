@@ -48,3 +48,17 @@ Thumbs.db
 # Root files
 package-lock.json
 .nyc_output
+
+# Environments
+/environments/*
+!/environments/.env.test
+
+#PostgreSQL
+/postgres-data
+
+
+#Logs
+/logs/*
+!/logs/.gitkeep
+/.vscode/launch.json
+/certs/debug.log

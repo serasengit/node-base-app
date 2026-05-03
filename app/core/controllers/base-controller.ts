@@ -18,26 +18,6 @@ export class BaseController {
   }
 
   /**
-   * Parses a boolean-like value.
-   *
-   * Supported values:
-   * - true
-   * - false
-   * - "true"
-   * - "false"
-   */
-  parseBoolean(value: string | boolean | Array<string | boolean> | undefined): boolean | undefined {
-    value = this.getSingleValue(value);
-
-    if (value === undefined) return undefined;
-    if (typeof value === 'boolean') return value;
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-
-    return undefined;
-  }
-
-  /**
    * Parses a numeric value.
    *
    * Returns undefined when the value is empty or cannot be converted to a valid number.
@@ -50,23 +30,6 @@ export class BaseController {
     const parsed = Number(value);
 
     return Number.isNaN(parsed) ? undefined : parsed;
-  }
-
-  /**
-   * Parses a date value.
-   *
-   * Accepts string, number, or Date values.
-   * Returns undefined when the value cannot be converted to a valid Date.
-   */
-  parseDate(value: string | number | Date | Array<string | number | Date> | undefined): Date | undefined {
-    value = this.getSingleValue(value);
-
-    if (value === undefined) return undefined;
-    if (value instanceof Date) return value;
-
-    const parsed = new Date(value);
-
-    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
   }
 
   /**
@@ -92,7 +55,6 @@ export class BaseController {
   getDefaultFilters(req: Request): QueryFilters {
     return {
       textSearch: req.query.textSearch as string,
-      isStrictSearch: this.parseBoolean(req.query.isStrictSearch as string),
       language: (req.headers.language ?? Language.Spanish) as Language
     };
   }
