@@ -9,9 +9,9 @@ stages:
 # Stage for installing dependencies
 dependencies:
   stage: dependencies
-  image: node:24.0.1 # Use Node.js 24.0.1 Docker image
+  image: node:20-slim # Use Node.js 20-slim Docker image
   script:
-    - npm install # Install project dependencies
+    - npm ci --include=dev # Install project dependencies using clean install
   cache:
     key:
       files:
@@ -23,6 +23,9 @@ dependencies:
     - merge_requests # Only run this job for merge requests
     - develop # Also run on the develop branch
     - main # Also run on the main branch
+  artifacts:
+    paths:
+      - node_modules/ # Save node_modules as an artifact for use in later stages
 # Stage for building the project
 build:
   stage: build
@@ -39,6 +42,9 @@ build:
     paths:
       - node_modules # Cache node_modules to speed up future builds
     policy: pull # Only pull the cache before running the job (no pushing)
+  needs:
+    - job: dependencies # This job depends on the dependencies job
+      artifacts: true # Make artifacts from the dependencies job available to this job
   only:
     - merge_requests # Only run this job for merge requests
     - develop # Also run on the develop branch
