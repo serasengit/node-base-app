@@ -119,7 +119,11 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
     info: {
       title: 'Node Base App API',
       version: '1.0.0',
-      description: 'OpenAPI documentation for the current server skeleton.'
+      description:
+        'OpenAPI documentation for the Node Base App backend skeleton. This API provides a reusable TypeScript and Express architecture with feature-based modules, Objection.js models, Knex database access, validation schemas, standardized responses and generated route documentation.',
+      contact: {
+        name: 'Sergio Asensio Puyuelo'
+      }
     },
     servers: [
       {
@@ -164,17 +168,6 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
               type: 'array',
               items: {}
             }
-          }
-        },
-        User: {
-          type: 'object',
-          properties: {
-            id: { type: 'integer' },
-            nif: { type: 'string', nullable: true },
-            name: { type: 'string', nullable: true },
-            email: { type: 'string', nullable: true },
-            createdAt: { type: 'string', format: 'date-time', nullable: true },
-            updatedAt: { type: 'string', format: 'date-time', nullable: true }
           }
         },
         City: {

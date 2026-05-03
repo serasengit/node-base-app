@@ -136,16 +136,16 @@ deploy:
   before_script:
     - apk add --no-cache sshpass openssh-client # Install sshpass and ssh client tools in Alpine container
   variables:
-    DOCKER_CONTAINER_NAME: care-wastewater-control-center-back-end-pre # Define the Docker container name for deployment
+    DOCKER_CONTAINER_NAME: node-base-app-back-end-pre # Define the Docker container name for deployment
   script:
     # SSH into the server and deploy the application
     - |
       sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << EOF
       set -x
-      cd /home/care-wastewater-control-center/care-wastewater-control-center-back-end
+      cd /home/node-base-app/node-base-app-back-end
 
       # Set Git remote to use token authentication
-      sudo git remote set-url origin https://$GIT_USERNAME:$GIT_TOKEN@git.adasasistemas.com/ad10231-plataforma-saneamiento-care/care-wastewater-control-center-back-end.git
+      sudo git remote set-url origin https://$GIT_USERNAME:$GIT_TOKEN@git.adasasistemas.com/ad10231-plataforma-saneamiento-care/node-base-app-back-end.git
 
       # Switch to the correct branch
       sudo git checkout main

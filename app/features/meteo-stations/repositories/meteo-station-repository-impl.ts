@@ -146,14 +146,14 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
   private applyRelations(qb: QueryBuilder<MeteoStationSchema>, relations: QueryRelations): void {
     if (!Array.isArray(relations.include)) return;
 
-    // Load creator user relation when requested.
+    // Load city data.
     if (relations.include.includes('city')) {
       qb.withGraphFetched('city');
     }
   }
 
   /**
-   * Applies text search filters over station fields and related user fields.
+   * Applies text search filters over station fields and related city fields.
    */
   private applyFilters(qb: Objection.QueryBuilder<MeteoStationSchema>, filters: QueryFilters): void {
     if (!filters.textSearch) return;

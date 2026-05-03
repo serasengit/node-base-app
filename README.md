@@ -208,6 +208,12 @@ environments/.env.dev
   Folder where application logs are written.  
   Development value: `logs/dev`.
 
+#### 📘 API documentation
+
+- `ENABLE_API_DOCS`  
+  Enables or disables the API documentation route, including Swagger UI and OpenAPI JSON.  
+  Development value: `true`.
+
 ### Example `.env.dev`
 
 ```env
@@ -239,6 +245,9 @@ DOCKER_CONTAINER_NAME=node-base-app
 # Logging configuration
 LOG_LEVEL=debug
 LOGS_FOLDER=logs/dev
+
+# Enable API documentation route (Swagger UI).
+ENABLE_API_DOCS=true
 ```
 
 ## 🚀 Development startup
@@ -301,7 +310,7 @@ http://localhost:3000/api/v1
 
 ## 📘 Swagger / OpenAPI
 
-The API documentation is exposed by the backend.
+The API documentation is exposed by the backend when `ENABLE_API_DOCS=true`.
 
 Common endpoints:
 
@@ -314,6 +323,7 @@ Notes:
 
 - OpenAPI documentation is generated from the registered routes.
 - Route introspection is handled under `app/docs`.
+- The documentation routes are enabled only when `ENABLE_API_DOCS=true`.
 - The final API prefix depends on the value of `SERVER_API`.
 
 ## 📦 Available scripts
@@ -643,6 +653,7 @@ npm run test
 ## 📝 Notes
 
 - The API prefix is controlled by `SERVER_API`.
+- API documentation routes are controlled by `ENABLE_API_DOCS`.
 - The project is intended to be reused as a backend starter template.
 - Example modules can be removed or renamed when creating a new project.
 - Database migrations and seeds are environment-specific.

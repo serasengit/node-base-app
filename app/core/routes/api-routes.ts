@@ -28,6 +28,7 @@ if (!isProduction || isApiDocsEnabled) {
   apiRouter.use('/', createDocsRouter(apiRouteMounts));
 }
 
+// Mount city routes.
 apiRouter.use('/cities', cityRouter);
 
 // Mount meteo station routes.

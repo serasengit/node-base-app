@@ -1,188 +1,121 @@
 import { Router } from 'express';
 
 type OpenApiObject = Record<string, unknown>;
-type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+
+export type OpenApiPaths = Record<string, OpenApiObject>;
 
 export type ApiRouteMount = {
+  /**
+   * Base path where the router is mounted.
+   *
+   * Example:
+   * /cities
+   * /meteo-stations
+   */
   path: string;
+
+  /**
+   * Express router mounted under the base path.
+   */
   router: Router;
-  protected: boolean;
+
+  /**
+   * Indicates whether the mounted route group should be considered protected.
+   *
+   * This is useful for documentation generation, even if the current skeleton
+   * does not enforce authentication by default.
+   */
+  protected?: boolean;
 };
 
-type RouteLayer = {
-  route?: {
-    path?: string | string[];
-    methods?: Record<string, boolean>;
-  };
-};
-
-const HTTP_METHODS: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete'];
-
 /**
- * Ensures a path starts with `/`.
+ * Converts an Express route path into an OpenAPI-compatible path.
+ *
+ * Example:
+ * /cities/:id -> /cities/{id}
  */
-function normalizePath(path: string): string {
-  if (!path.startsWith('/')) return `/${path}`;
-  return path;
+function normalizeOpenApiPath(path: string): string {
+  return path.replace(/:([^/]+)/g, '{$1}');
 }
 
 /**
- * Converts Express params (e.g. `:id`) into OpenAPI params (`{id}`).
+ * Joins a mounted base path and a router path into a single URL path.
+ *
+ * Examples:
+ * path: /cities, routePath: /       -> /cities
+ * path: /cities, routePath: /:id    -> /cities/:id
  */
-function normalizeExpressPath(path: string): string {
-  return path.replace(/:([A-Za-z0-9_]+)/g, '{$1}');
+function joinPaths(basePath: string, routePath: string): string {
+  const fullPath = `/${basePath}/${routePath}`.replace(/\/+/g, '/').replace(/\/$/, '');
+
+  return fullPath || '/';
 }
 
 /**
- * Converts a slug/snake value into a title-cased label.
+ * Extracts the HTTP methods registered in an Express route layer.
  */
-function titleCase(value: string): string {
-  return value
-    .split(/[\s_-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+function getRouteMethods(layer: any): string[] {
+  if (!layer.route?.methods) return [];
+
+  return Object.keys(layer.route.methods).filter((method) => layer.route.methods[method]);
 }
 
 /**
- * Resolves the OpenAPI tag from the first segment of a mounted router path.
+ * Extracts route paths from an Express route layer.
  */
-function tagFromMountPath(path: string): string {
-  const segment = normalizePath(path).split('/').find(Boolean) ?? 'General';
+function getRoutePaths(layer: any): string[] {
+  if (!layer.route?.path) return [];
 
-  const mapping: Record<string, string> = {
-    auth: 'Auth',
-    'access-logs': 'Access Logs',
-    users: 'Users',
-    entities: 'Entities',
-    roles: 'Roles',
-    settings: 'Settings',
-    'alarm-types': 'Alarm Types',
-    alarms: 'Alarms',
-    authorizations: 'Authorizations',
-    inspections: 'Inspections',
-    analytics: 'Analytics',
-    cities: 'Cities',
-    'meteo-stations': 'Meteo Stations',
-    'config-master-tables': 'Master Tables',
-    'parameter-values': 'Parameter Values',
-    'check-points': 'Check Points',
-    canons: 'Canons',
-    'canon-formulas': 'Canon Formulas',
-    'canon-parameters': 'Canon Parameters'
-  };
+  const path = layer.route.path;
 
-  return mapping[segment] ?? titleCase(segment);
+  if (Array.isArray(path)) {
+    return path.map(String);
+  }
+
+  return [String(path)];
 }
 
 /**
- * Builds a fallback summary for auto-generated operations.
+ * Creates a basic OpenAPI operation placeholder for discovered routes.
  */
-function defaultSummary(method: HttpMethod, fullPath: string): string {
-  const cleaned = fullPath
-    .replace(/^\//, '')
-    .replace(/\{[^}]+\}/g, 'by id')
-    .replace(/\//g, ' ')
-    .trim();
-
-  const verbs: Record<HttpMethod, string> = {
-    get: 'Get',
-    post: 'Create',
-    put: 'Update',
-    patch: 'Patch',
-    delete: 'Delete'
-  };
-
-  return `${verbs[method]} ${cleaned || 'root'}`;
-}
-
-/**
- * Creates a generic OpenAPI operation object for auto-discovered routes.
- */
-function genericOperation(method: HttpMethod, fullPath: string, tag: string, isProtected: boolean): OpenApiObject {
-  const successCode = method === 'post' ? '201' : method === 'delete' ? '204' : '200';
-
+function createDiscoveredOperation(method: string, routeMount: ApiRouteMount): OpenApiObject {
   return {
-    tags: [tag],
-    summary: defaultSummary(method, fullPath),
-    description: 'Auto-discovered from Express router configuration. Add a manual override in OpenAPI docs for richer details.',
-    ...(isProtected ? { security: [{ bearerAuth: [] }, { refreshTokenCookie: [] }] } : {}),
+    summary: `Discovered ${method.toUpperCase()} endpoint`,
+    ...(routeMount.protected ? { security: [{ bearerAuth: [] }] } : {}),
     responses: {
-      [successCode]:
-        method === 'delete'
-          ? { description: 'Operation completed successfully.' }
-          : {
-              description: 'Successful response.',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/GenericRecord' }
-                }
-              }
-            },
-      400: {
-        description: 'Validation error.',
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ApiError' }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized.',
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ApiError' }
-          }
-        }
-      },
-      403: {
-        description: 'Forbidden.',
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ApiError' }
-          }
-        }
-      },
-      422: {
-        description: 'Unprocessable Entity.',
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ApiError' }
-          }
-        }
+      200: {
+        description: 'Successful response.'
       }
     }
   };
 }
 
 /**
- * Introspects mounted Express routers and returns OpenAPI path operations inferred from route metadata.
+ * Collects mounted Express router paths and converts them into OpenAPI paths.
  */
-export function collectMountedRouterPaths(mounts: ApiRouteMount[]): Record<string, OpenApiObject> {
-  const paths: Record<string, OpenApiObject> = {};
+export function collectMountedRouterPaths(routeMounts: ApiRouteMount[]): OpenApiPaths {
+  const paths: OpenApiPaths = {};
 
-  for (const mount of mounts) {
-    const stack = ((mount.router as unknown as { stack?: RouteLayer[] }).stack ?? []).filter((layer) => Boolean(layer.route));
-    const tag = tagFromMountPath(mount.path);
+  for (const mount of routeMounts) {
+    const stack = (mount.router as any).stack ?? [];
 
     for (const layer of stack) {
-      const route = layer.route;
-      if (!route?.path) continue;
-
-      const routePaths = Array.isArray(route.path) ? route.path : [route.path];
+      const routePaths = getRoutePaths(layer);
+      const methods = getRouteMethods(layer);
 
       for (const routePath of routePaths) {
-        const fullPath = normalizeExpressPath(`${normalizePath(mount.path)}${routePath === '/' ? '' : routePath}`);
+        const openApiPath = normalizeOpenApiPath(joinPaths(mount.path, routePath));
 
-        if (fullPath === '/docs' || fullPath === '/openapi.json') {
-          continue;
+        if (!paths[openApiPath]) {
+          paths[openApiPath] = {};
         }
 
-        paths[fullPath] ||= {};
+        const pathItem = paths[openApiPath] as Record<string, OpenApiObject>;
 
-        for (const method of HTTP_METHODS) {
-          if (!route.methods?.[method]) continue;
-          paths[fullPath][method] = genericOperation(method, fullPath, tag, mount.protected);
+        for (const method of methods) {
+          if (!pathItem[method]) {
+            pathItem[method] = createDiscoveredOperation(method, mount);
+          }
         }
       }
     }
@@ -192,20 +125,23 @@ export function collectMountedRouterPaths(mounts: ApiRouteMount[]): Record<strin
 }
 
 /**
- * Merges documented OpenAPI paths over auto-discovered paths, giving precedence to documented operations.
+ * Deep-merges discovered OpenAPI paths with manually documented paths.
+ *
+ * Manual definitions take precedence when the same path and method exist.
  */
-export function mergeOpenApiPaths(
-  discoveredPaths: Record<string, OpenApiObject>,
-  documentedPaths: Record<string, OpenApiObject>
-): Record<string, OpenApiObject> {
-  const merged: Record<string, OpenApiObject> = { ...discoveredPaths };
+export function mergeOpenApiPaths(discoveredPaths: OpenApiPaths, documentedPaths: OpenApiPaths): OpenApiPaths {
+  const mergedPaths: OpenApiPaths = {
+    ...discoveredPaths
+  };
 
-  for (const [path, operations] of Object.entries(documentedPaths)) {
-    merged[path] = {
-      ...merged[path],
-      ...operations
+  for (const [path, documentedPathItem] of Object.entries(documentedPaths)) {
+    const discoveredPathItem = (mergedPaths[path] as Record<string, unknown> | undefined) ?? {};
+
+    mergedPaths[path] = {
+      ...discoveredPathItem,
+      ...(documentedPathItem as Record<string, unknown>)
     };
   }
 
-  return merged;
+  return mergedPaths;
 }

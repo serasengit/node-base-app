@@ -20,7 +20,7 @@ class MeteoStationService {
     // Retrieve meteo station records from the repository
     const { total, records }: QueryResponse<MeteoStationSchema> = await this.meteoStationRepository.find(params);
 
-    // Convert the user schemas to DTOs and return
+    // Convert the meteo station records to DTOs and return the response
     return { total, records: records.map(MeteoStationSchema.toDTO) };
   }
 
