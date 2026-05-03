@@ -5,52 +5,64 @@ stages:
   - sonar # Fourth stage: run SonarQube static analysis.
   - zap # Fifth stage: run ZAP security analysis.
 
+variables:
+  MIN_COVERAGE_PERCENTAGE: '90'
+
 # Install project dependencies.
 dependencies:
   stage: dependencies
   image: node:20-slim # Use the same Node.js major version as the Dockerfile.
+
   script:
     - npm ci --include=dev # Install dependencies from package-lock.json, including dev dependencies.
+
   cache:
     key:
       files:
         - package-lock.json # Rebuild the cache when package-lock.json changes.
     paths:
-      - node_modules # Cache node_modules to speed up future pipeline executions.
+      - node_modules/ # Cache node_modules to speed up future pipeline executions.
     policy: pull-push # Restore the cache before the job and update it afterwards.
+
   artifacts:
     paths:
       - node_modules/ # Make node_modules available to downstream jobs.
     expire_in: 1 hour
+
   only:
-    - merge_requests # Run this job for merge requests.
-    - develop # Run this job on the develop branch.
-    - main # Run this job on the main branch.
+    - merge_requests
+    - develop
+    - main
 
 # Build the TypeScript project.
 build:
   stage: build
   image: node:20-slim # Use the same Node.js major version as the Dockerfile.
+
   needs:
     - job: dependencies # Reuse dependencies installed by the dependencies job.
       artifacts: true
+
   script:
     - npm run build # Compile TypeScript into the dist directory.
+
   artifacts:
     paths:
       - dist/ # Store the compiled application as a pipeline artifact.
     expire_in: 1 hour
+
   cache:
     key:
       files:
         - package-lock.json # Use the same dependency cache key as the dependencies job.
     paths:
-      - node_modules # Restore node_modules from cache if available.
+      - node_modules/ # Restore node_modules from cache if available.
     policy: pull # Only restore the cache; do not update it from this job.
+
   only:
-    - merge_requests # Run this job for merge requests.
-    - develop # Run this job on the develop branch.
-    - main # Run this job on the main branch.
+    - merge_requests
+    - develop
+    - main
 
 # Run tests and validate code coverage.
 test:
@@ -66,17 +78,19 @@ test:
   variables:
     DOCKER_HOST: tcp://docker:2375 # Docker daemon exposed by the docker:dind service.
     DOCKER_TLS_CERTDIR: '' # Disable Docker TLS inside the isolated CI network.
+    COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}-test' # Avoid collisions between concurrent pipelines.
+    NODE_ENV: test
 
   before_script:
-    - apk add --no-cache nodejs npm # Install Node.js and npm in the Docker CLI image.
-    - npm ci --include=dev # Install project dependencies, including dev dependencies.
+    - docker version # Print Docker version for troubleshooting.
+    - docker compose version # Print Docker Compose version for troubleshooting.
 
   script:
     # Start the unit-tests Compose profile.
     - |
       if ! docker compose --env-file environments/.env.test --profile unit-tests up --build -d; then
-        docker compose --env-file environments/.env.test logs migrations
-        docker compose --env-file environments/.env.test down --remove-orphans
+        docker compose --env-file environments/.env.test logs || true
+        docker compose --env-file environments/.env.test down --remove-orphans --volumes || true
         exit 1
       fi
 
@@ -102,8 +116,9 @@ test:
         exit "$exit_code"
       fi
 
-    # Stop and remove containers created by Docker Compose.
-    - docker compose --env-file environments/.env.test down --remove-orphans
+  after_script:
+    # Always clean up containers, networks and volumes created by Docker Compose.
+    - docker compose --env-file environments/.env.test down --remove-orphans --volumes || true
 
   artifacts:
     when: always
@@ -111,18 +126,10 @@ test:
       - coverage/ # Store the coverage report as a pipeline artifact.
     expire_in: 1 week
 
-  cache:
-    key:
-      files:
-        - package-lock.json # Use the same dependency cache key as the dependencies job.
-    paths:
-      - node_modules # Restore node_modules from cache if available.
-    policy: pull # Only restore the cache; do not update it from this job.
-
   only:
-    - merge_requests # Run this job for merge requests.
-    - develop # Run this job on the develop branch.
-    - main # Run this job on the main branch.
+    - merge_requests
+    - develop
+    - main
 
 # Run SonarQube static code analysis.
 sonar:
@@ -152,13 +159,13 @@ sonar:
       - .sonar/cache
 
   only:
-    - merge_requests # Run SonarQube analysis for merge requests.
-    - main # Run SonarQube analysis on the main branch.
+    - merge_requests
+    - main
 
 # Run ZAP security analysis against the containerized application.
 zap:
   stage: zap
-  image: docker:24.0.5-cli
+  image: docker:24.0.5-cli # Use Docker CLI because this job starts the application stack with Docker Compose.
 
   # Docker-in-Docker service used to build and run the application containers.
   # The GitLab runner must be configured with privileged = true.
@@ -167,25 +174,15 @@ zap:
       alias: docker
 
   variables:
-    # Docker daemon exposed by the docker:dind service.
-    DOCKER_HOST: tcp://docker:2375
-
-    # Disable Docker TLS inside the isolated CI network.
-    DOCKER_TLS_CERTDIR: ''
-
-    # Use a unique Docker Compose project name to avoid collisions between concurrent pipelines.
-    COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}'
-
-    # Runtime environment used by the application stack.
-    NODE_ENV: test
+    DOCKER_HOST: tcp://docker:2375 # Docker daemon exposed by the docker:dind service.
+    DOCKER_TLS_CERTDIR: '' # Disable Docker TLS inside the isolated CI network.
+    COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}-zap' # Avoid collisions between concurrent pipelines.
+    NODE_ENV: test # Runtime environment used by the application stack.
 
   before_script:
-    # Create the local directory where ZAP reports will be stored.
-    - mkdir -p zap-reports
-
-    # Print Docker versions for troubleshooting.
-    - docker version
-    - docker compose version
+    - mkdir -p zap-reports # Create the local directory where ZAP reports will be stored.
+    - docker version # Print Docker version for troubleshooting.
+    - docker compose version # Print Docker Compose version for troubleshooting.
 
   script:
     # Load environment variables from the test environment file.
@@ -214,6 +211,9 @@ zap:
     # Start the application container.
     - docker compose --env-file environments/.env.test --profile app up --build -d app
 
+    # Print current Compose status before waiting.
+    - docker compose --env-file environments/.env.test ps
+
     # Wait until the application healthcheck is ready from inside the app container.
     - |
       echo "Waiting for application healthcheck..."
@@ -228,8 +228,8 @@ zap:
 
         if [ "$i" -eq 60 ]; then
           echo "Application did not become ready in time."
-          docker compose --env-file environments/.env.test ps
-          docker compose --env-file environments/.env.test logs app
+          docker compose --env-file environments/.env.test ps || true
+          docker compose --env-file environments/.env.test logs app || true
           exit 1
         fi
       done
@@ -255,20 +255,16 @@ zap:
     - docker compose --env-file environments/.env.test down --remove-orphans --volumes || true
 
   artifacts:
-    # Always upload reports, even if ZAP finds issues or the job fails.
-    when: always
+    when: always # Always upload reports, even if ZAP finds issues or the job fails.
     paths:
-      - zap-reports/zap_report.html
-      - zap-reports/zap_report.xml
+      - zap-reports/
     expire_in: 1 week
 
-  # Run ZAP for merge requests and the main development branches.
   only:
     - merge_requests
     - develop
     - main
 
   needs:
-    # Ensure the application builds before starting the containerized ZAP scan.
-    - job: build
+    - job: build # Ensure the application builds before starting the containerized ZAP scan.
       artifacts: true
