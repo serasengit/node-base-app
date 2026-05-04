@@ -5,9 +5,6 @@ stages:
   - sonar # Fourth stage: run SonarQube static analysis.
   - zap # Fifth stage: run ZAP security analysis.
 
-variables:
-  MIN_COVERAGE_PERCENTAGE: '90'
-
 # Install project dependencies.
 dependencies:
   stage: dependencies
