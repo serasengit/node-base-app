@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
-import { ApiRouteMount } from '../../docs/route-introspection';
-import { cityRouter } from '../../features/cities/routes/city-route';
-import { meteoStationRouter } from '../../features/meteo-stations/routes/meteo-station-route';
+import { ApiRouteMount } from '@docs/route-introspection';
+import { cityRouter } from '@features/cities/routes/city-route';
+import { meteoStationRouter } from '@features/meteo-stations/routes/meteo-station-route';
 import { createDocsRouter } from './docs-route';
 
 export const apiRouter = Router();
