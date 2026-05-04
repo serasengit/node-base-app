@@ -32,6 +32,9 @@ export const startApiRuntime = (): express.Express => {
   // Prevent Express from exposing framework information through the X-Powered-By header.
   app.disable('x-powered-by');
 
+  // Prevent API responses from being cached by browsers, proxies, or shared caches.
+  app.use(noStoreCacheHeaders);
+
   const rawEnv = (process.env.NODE_ENV || 'dev').trim().toLowerCase();
   const isProduction = rawEnv === 'prod' || rawEnv === 'production';
 
@@ -58,7 +61,7 @@ export const startApiRuntime = (): express.Express => {
   app.use(cors(corsOptions));
 
   // Prevent API responses from being cached by browsers, proxies, or shared caches.
-  app.use(`/${serverApi}`, noStoreCacheHeaders);
+  app.use(`/${serverApi}`);
 
   // API routes.
   app.use(`/${serverApi}`, apiRouter);
@@ -81,9 +84,6 @@ export const startApiRuntime = (): express.Express => {
 
   // Prevent Express from exposing framework information through the X-Powered-By header.
   healthApp.disable('x-powered-by');
-
-  // Prevent healthcheck responses from being cached.
-  healthApp.use(noStoreCacheHeaders);
 
   healthApp.get('/health', (_req, res) => {
     res.status(200).json({
