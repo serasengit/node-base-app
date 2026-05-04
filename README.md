@@ -250,9 +250,6 @@ POSTGRES_PASSWORD=postgres
 DOCKER_IMAGE_NAME=node-base-app-test
 DOCKER_CONTAINER_NAME=node-base-app-test
 
-# Code coverage thresholds (in percentage)
-MIN_COVERAGE_PERCENTAGE=90
-
 # Logging configuration
 LOG_LEVEL=debug
 LOGS_FOLDER=logs/test
