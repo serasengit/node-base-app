@@ -60,6 +60,3 @@ Thumbs.db
 !/logs/.gitkeep
 /.vscode/launch.json
 /certs/debug.log
-
-#Sonar
-.sonar-project.properties
