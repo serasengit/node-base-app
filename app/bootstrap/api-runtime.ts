@@ -60,9 +60,6 @@ export const startApiRuntime = (): express.Express => {
   app.use(json());
   app.use(cors(corsOptions));
 
-  // Prevent API responses from being cached by browsers, proxies, or shared caches.
-  app.use(`/${serverApi}`);
-
   // API routes.
   app.use(`/${serverApi}`, apiRouter);
 
