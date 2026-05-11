@@ -10,11 +10,11 @@ class ModuleService {
   @Inject('moduleRepository') private readonly moduleRepository!: ModuleRepository;
 
   /**
-   * @summary Retrieves active module by its code.
+   * Retrieves module by its code.
    */
-  public async findActiveByCode(code: ModuleCode): Promise<ModuleDTO> {
+  public async findByCode(code: ModuleCode): Promise<ModuleDTO> {
     // Retrieve active module by code
-    const moduleSchema = await this.moduleRepository.findActiveByCode(code);
+    const moduleSchema = await this.moduleRepository.findByCode(code);
 
     // Throw error if module is not found
     if (!moduleSchema) throw new NotFoundError(APICode.ModuleNotFound);

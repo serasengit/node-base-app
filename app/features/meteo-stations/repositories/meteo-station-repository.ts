@@ -2,5 +2,5 @@ import { QueryParams, WritableRepository } from '@core/repositories/base-reposit
 import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-schema';
 
 export interface MeteoStationRepository extends WritableRepository<MeteoStationSchema> {
-  findByName(name: string, params?: QueryParams): Promise<MeteoStationSchema | undefined>;
+  findByName(name: string, params?: QueryParams): Promise<MeteoStationSchema>;
 }

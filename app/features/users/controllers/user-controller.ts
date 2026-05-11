@@ -12,7 +12,7 @@ class UserController extends BaseController {
   @Inject(() => UserService) private readonly userService!: UserService;
 
   /**
-   * @summary Find user by id
+   * Find user by id
    */
   async findById(req: express.Request, res: express.Response): Promise<express.Response<UserDTO>> {
     const user = await this.userService.findById(this.parseNumber(req.params.id), <QueryParams>{
@@ -25,7 +25,7 @@ class UserController extends BaseController {
   }
 
   /**
-   * @summary Find users
+   * Find users
    */
   async find(req: express.Request, res: express.Response): Promise<express.Response<QueryResponse<UserDTO>>> {
     const { total, records } = await this.userService.find(<QueryParams>{
@@ -42,7 +42,7 @@ class UserController extends BaseController {
   }
 
   /**
-   * @summary Create user
+   * Create user
    */
   async create(req: express.Request, res: express.Response): Promise<express.Response<UserDTO>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
@@ -52,7 +52,7 @@ class UserController extends BaseController {
   }
 
   /**
-   * @summary Update user
+   * Update user
    */
   async update(req: express.Request, res: express.Response): Promise<express.Response<UserDTO>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
@@ -69,7 +69,7 @@ class UserController extends BaseController {
   }
 
   /**
-   * @summary Delete user
+   * Delete user
    */
   async delete(req: express.Request, res: express.Response): Promise<express.Response<void>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;

@@ -135,7 +135,7 @@ export function mergeOpenApiPaths(discoveredPaths: OpenApiPaths, documentedPaths
   };
 
   for (const [path, documentedPathItem] of Object.entries(documentedPaths)) {
-    const discoveredPathItem = (mergedPaths[path] as Record<string, unknown> | undefined) ?? {};
+    const discoveredPathItem = (mergedPaths[path] as Record<string, unknown>) ?? {};
 
     mergedPaths[path] = {
       ...discoveredPathItem,

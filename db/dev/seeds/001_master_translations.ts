@@ -9,6 +9,8 @@ export async function seed(knex: Knex): Promise<void> {
     .withSchema('master')
     .insert([
       // API GENERAL ERROR MESSAGES
+      { code: 'client_error_not_found', language: 'en', text: 'Resource not found' },
+      { code: 'client_error_not_found', language: 'es', text: 'Recurso no encontrado' },
       { code: 'internal_server_error', language: 'en', text: 'Internal server error' },
       { code: 'internal_server_error', language: 'es', text: 'Error interno del servidor' },
       { code: 'server_error_not_implemented', language: 'en', text: 'Server error not implemented' },
@@ -43,6 +45,8 @@ export async function seed(knex: Knex): Promise<void> {
       { code: 'translation_not_found', language: 'es', text: 'Traducción no encontrada' },
 
       // MODULES MESSAGES
+      { code: 'users', language: 'en', text: 'Users' },
+      { code: 'users', language: 'es', text: 'Usuarios' },
       { code: 'module_not_found', language: 'en', text: 'Module not found' },
       { code: 'module_not_found', language: 'es', text: 'Módulo no encontrado' },
 

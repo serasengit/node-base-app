@@ -3,9 +3,7 @@ import { StatusCode } from 'status-code-enum';
 import { BaseError } from './base-error';
 
 /**
- * @summary InternalServerError
- * @description InternalServerError error class
- *
+ * InternalServerError error class
  */
 export class InternalServerError extends BaseError {
   constructor(code: APICode) {

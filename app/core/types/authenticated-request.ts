@@ -6,4 +6,5 @@ export type AuthenticatedRequest = Request & {
   auth?: AccessTokenPayload;
   user?: UserDTO;
   serialNumber?: string;
+  requestId?: string;
 };

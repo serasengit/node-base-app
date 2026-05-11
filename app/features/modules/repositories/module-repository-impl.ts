@@ -4,7 +4,7 @@ import { ModuleRepository } from './module-repository';
 
 @Service('moduleRepository')
 export class ModuleRepositoryImpl implements ModuleRepository {
-  public async findActiveByCode(code: ModuleCode): Promise<ModuleSchema | undefined> {
-    return await ModuleSchema.query().where('code', code).andWhere('isActive', true).first();
+  public async findByCode(code: ModuleCode): Promise<ModuleSchema> {
+    return await ModuleSchema.query().where('code', code).first();
   }
 }

@@ -16,7 +16,7 @@ class RoleService {
   @Inject('roleRepository') private readonly roleRepository!: RoleRepository;
 
   /**
-   * @summary Retrieves a role by its ID.
+   * Retrieves a role by its ID.
    */
   public async findById(id: number, params: QueryParams = {}): Promise<RoleDTO> {
     const role = await this.roleRepository.findById(id, params);
@@ -25,7 +25,7 @@ class RoleService {
   }
 
   /**
-   * @summary Retrieves a role by its code.
+   * Retrieves a role by its code.
    */
   public async findByCode(code: RoleCode): Promise<RoleDTO> {
     // Retrieve role by code
@@ -39,7 +39,7 @@ class RoleService {
   }
 
   /**
-   * @summary Checks if a role has given grant type over a specific module.
+   * Checks if a role has given grant type over a specific module.
    */
 
   public async hasGrantTypeOverModule(code: RoleCode, moduleCode: ModuleCode, grantType: GrantType): Promise<boolean> {
@@ -47,7 +47,7 @@ class RoleService {
     const role = await this.findByCode(code);
 
     // Retrieve the module
-    const module = await this.moduleService.findActiveByCode(moduleCode);
+    const module = await this.moduleService.findByCode(moduleCode);
 
     // Check if the role has the grant over the module
     const hasGrantTypeOverModule = await this.roleRepository.hasGrantTypeOverModule(role.id, module.id, grantType);

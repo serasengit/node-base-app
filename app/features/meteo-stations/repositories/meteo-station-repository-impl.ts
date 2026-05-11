@@ -50,7 +50,7 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
    *
    * Optional relations can be loaded using query params.
    */
-  public async findById(id: number, params: QueryParams = {}): Promise<MeteoStationSchema | undefined> {
+  public async findById(id: number, params: QueryParams = {}): Promise<MeteoStationSchema> {
     const qb = MeteoStationSchema.query(params.trx);
 
     if (params.relations) this.applyRelations(qb, params.relations);
@@ -63,7 +63,7 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
    *
    * Optional relations can be loaded using query params.
    */
-  public async findByName(name: string, params?: QueryParams): Promise<MeteoStationSchema | undefined> {
+  public async findByName(name: string, params?: QueryParams): Promise<MeteoStationSchema> {
     const qb = MeteoStationSchema.query(params?.trx);
 
     if (params?.relations) this.applyRelations(qb, params.relations);
@@ -107,7 +107,7 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
   /**
    * Deletes a meteo station and returns the deleted record when available.
    */
-  public async delete(trx: Transaction, meteoStationSchema: MeteoStationSchema): Promise<MeteoStationSchema | undefined> {
+  public async delete(trx: Transaction, meteoStationSchema: MeteoStationSchema): Promise<MeteoStationSchema> {
     return await MeteoStationSchema.query(trx).deleteById(meteoStationSchema.id).returning('*').first();
   }
 

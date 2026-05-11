@@ -16,3 +16,6 @@ authRouter.post('/', checkSchema(authSchema()), asyncHandler(authController.auth
 
 // Define the refresh token route
 authRouter.post('/refresh-token', asyncHandler(authController.refreshToken.bind(authController)));
+
+// Define the logout route
+authRouter.post('/logout', asyncHandler(authController.logout.bind(authController)));

@@ -14,7 +14,7 @@ class CityService {
   @Inject('cityRepository') private readonly cityRepository: CityRepository;
 
   /**
-   * @summary Retrieves cities based on provided query parameters.
+   * Retrieves cities based on provided query parameters.
    */
   public async find(params: QueryParams): Promise<QueryResponse<CityDTO>> {
     // Retrieve city records from the repository
@@ -25,7 +25,7 @@ class CityService {
   }
 
   /**
-   * @summary Retrieves a city by its ID.
+   * Retrieves a city by its ID.
    */
   public async findById(id: number, params: QueryParams = {}): Promise<CityDTO> {
     const citySchema = await this.cityRepository.findById(id, params);
@@ -34,7 +34,7 @@ class CityService {
   }
 
   /**
-   * @summary Creates a new city.
+   * Creates a new city.
    */
   public async create(city: CityDTO, authenticatedUserId: number): Promise<CityDTO> {
     const trx = await transaction.start(CitySchema.knex());
@@ -70,7 +70,7 @@ class CityService {
   }
 
   /**
-   * @summary Updates an existing city.
+   * Updates an existing city.
    */
   public async update(city: CityDTO, authenticatedUserId: number): Promise<CityDTO> {
     const trx = await transaction.start(CitySchema.knex());
@@ -107,7 +107,7 @@ class CityService {
   }
 
   /**
-   * @summary Deletes a city by its ID.
+   * Deletes a city by its ID.
    */
   public async delete(id: number): Promise<void> {
     const trx = await transaction.start(CitySchema.knex());
@@ -132,7 +132,7 @@ class CityService {
   }
 
   /**
-   * @summary Builds a readable city identity for conflict details.
+   * Builds a readable city identity for conflict details.
    */
   private cityIdentity(city: CityDTO): string {
     return [city.name, city.province, city.country].filter(Boolean).join(', ');

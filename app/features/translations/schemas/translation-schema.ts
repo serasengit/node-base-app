@@ -18,7 +18,7 @@ export default class TranslationSchema extends Model {
     required: ['code', 'language', 'text'],
     properties: {
       id: { type: 'integer' },
-      code: { type: 'string', minLength: 1 },
+      code: { type: 'string', minLength: 1, maxLength: 255 },
       language: { type: 'string', minLength: 2, maxLength: 5 },
       text: { type: 'string', minLength: 1 },
       createdAt: { type: ['string', 'null'], format: 'date-time' },

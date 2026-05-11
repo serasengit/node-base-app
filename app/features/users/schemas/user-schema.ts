@@ -30,16 +30,16 @@ export default class UserSchema extends Model {
 
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
-    required: ['nif', 'language'],
+    required: ['language', 'roleId', 'isActive'],
     properties: {
       id: { type: 'integer' },
-      username: { type: 'string', minLength: 3, maxLength: 100 },
-      password: { type: 'string', minLength: 8, maxLength: 255 },
-      nif: { type: 'string', minLength: 9, maxLength: 9 },
+      username: { type: ['string', 'null'], minLength: 3, maxLength: 100 },
+      password: { type: ['string', 'null'], minLength: 8, maxLength: 100 },
+      nif: { type: ['string', 'null'], minLength: 9, maxLength: 9 },
       name: { type: ['string', 'null'], maxLength: 100 },
       email: { type: ['string', 'null'], format: 'email', maxLength: 255 },
       language: { type: 'string', maxLength: 5 },
-      roleId: { type: ['integer', 'null'] },
+      roleId: { type: 'integer' },
       isActive: { type: 'boolean' },
       createdById: { type: ['integer', 'null'] },
       updatedById: { type: ['integer', 'null'] },
@@ -81,19 +81,18 @@ export default class UserSchema extends Model {
     return ['displayName'];
   }
 
-  get displayName(): string | undefined {
+  get displayName(): string {
     if (!this.nif && !this.name) return undefined;
     if (!this.name) return this.nif;
     if (!this.nif) return this.name;
     return this.nif + ' - ' + this.name;
   }
 
-  static toDTO(userSchema: UserSchema): UserDTO {
+  static toDTO(userSchema: UserSchema, options: { includePassword?: boolean } = {}): UserDTO {
     const user: UserDTO = {
       id: userSchema.id,
       name: userSchema.name,
       username: userSchema.username,
-      password: userSchema.password,
       displayName: userSchema.displayName,
       nif: userSchema.nif,
       email: userSchema.email,
@@ -105,6 +104,9 @@ export default class UserSchema extends Model {
       createdAt: userSchema.createdAt,
       updatedAt: userSchema.updatedAt
     };
+    if (options.includePassword) {
+      user.password = userSchema.password;
+    }
     if (userSchema.role) {
       user.role = RoleSchema.toDTO(userSchema.role);
     }

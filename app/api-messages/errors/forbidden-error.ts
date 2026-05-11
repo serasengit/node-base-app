@@ -3,9 +3,7 @@ import { BaseError } from './base-error';
 import { APICode } from '@api-messages/api-messages';
 
 /**
- * @summary ForbiddenError
- * @description ForbiddenError error class
- *
+ * ForbiddenError error class
  */
 export class ForbiddenError extends BaseError {
   constructor(code: APICode) {

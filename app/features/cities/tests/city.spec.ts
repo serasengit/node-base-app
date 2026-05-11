@@ -6,7 +6,7 @@ import { knex, Knex } from 'knex';
 import { after, afterEach, before, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import app from '../../../../server';
-import { loginAsSystemAdmin, withBearerToken } from '../../../test-setup/auth-test-helper';
+import { loginAsReadOnly, loginAsSystemAdmin, withBearerToken } from '../../../test-setup/auth-test-helper';
 
 chai.use(chaiHttp);
 
@@ -25,6 +25,7 @@ const db: Knex = knex({
 const API_ENDPOINT = `/${process.env.SERVER_API}/cities`;
 const TEST_PREFIX = 'TEST_CITY_';
 let accessToken = '';
+let readonlyAccessToken = '';
 
 type CityRecord = {
   id: number;
@@ -95,6 +96,7 @@ async function cleanupTestData(): Promise<void> {
 describe('Cities API', function () {
   before(async () => {
     accessToken = await loginAsSystemAdmin();
+    readonlyAccessToken = await loginAsReadOnly();
   });
 
   afterEach(async () => {
@@ -267,6 +269,19 @@ describe('Cities API', function () {
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.CityNotFound);
     });
+
+    it('should reject read-only users when updating a city', async () => {
+      const city = await insertTestCity();
+
+      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${city.id}`), readonlyAccessToken).send({
+        name: city.name,
+        province: city.province,
+        country: city.country
+      });
+
+      expect(response).to.have.status(StatusCode.ClientErrorForbidden);
+      expect(response.body).to.have.property('code', APICode.InvalidGrants);
+    });
   });
 
   describe('DELETE /cities/:id', () => {
@@ -279,6 +294,15 @@ describe('Cities API', function () {
 
       const deleted = await db('cities').where({ id: city.id }).first();
       expect(deleted).to.equal(undefined);
+    });
+
+    it('should reject read-only users when deleting a city', async () => {
+      const city = await insertTestCity();
+
+      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${city.id}`), readonlyAccessToken);
+
+      expect(response).to.have.status(StatusCode.ClientErrorForbidden);
+      expect(response.body).to.have.property('code', APICode.InvalidGrants);
     });
   });
 });

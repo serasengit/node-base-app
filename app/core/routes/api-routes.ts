@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { appConfig } from '@bootstrap/config';
 
 import { AuthMiddleware } from '@core/middlewares/auth-middleware';
 import { ApiRouteMount } from '@docs/route-introspection';
@@ -28,10 +29,7 @@ export const apiRouteMounts: ApiRouteMount[] = [
 // API documentation.
 // Disabled by default in production to avoid exposing the API surface publicly.
 // Can be explicitly enabled with ENABLE_API_DOCS=true.
-const isProduction = process.env.NODE_ENV === 'prod' || process.env.NODE_ENV === 'production';
-const isApiDocsEnabled = process.env.ENABLE_API_DOCS === 'true';
-
-if (!isProduction || isApiDocsEnabled) {
+if (!appConfig.isProduction || appConfig.docs.enabled) {
   apiRouter.use('/', createDocsRouter(apiRouteMounts));
 }
 

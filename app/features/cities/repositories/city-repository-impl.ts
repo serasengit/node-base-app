@@ -68,7 +68,7 @@ export class CityRepositoryImpl implements CityRepository {
    *
    * Optional relations can be loaded using query params.
    */
-  public async findById(id: number, params: QueryParams = {}): Promise<CitySchema | undefined> {
+  public async findById(id: number, params: QueryParams = {}): Promise<CitySchema> {
     const qb = CitySchema.query(params.trx);
 
     if (params.relations) this.applyRelations(qb, params.relations);
@@ -86,7 +86,7 @@ export class CityRepositoryImpl implements CityRepository {
     country: string,
     province?: string,
     params: QueryParams = {}
-  ): Promise<CitySchema | undefined> {
+  ): Promise<CitySchema> {
     const qb = CitySchema.query(params.trx).where({ name, country });
 
     if (params.relations) this.applyRelations(qb, params.relations);
@@ -132,7 +132,7 @@ export class CityRepositoryImpl implements CityRepository {
   /**
    * Deletes a city and returns the deleted record when available.
    */
-  public async delete(trx: Transaction, citySchema: CitySchema): Promise<CitySchema | undefined> {
+  public async delete(trx: Transaction, citySchema: CitySchema): Promise<CitySchema> {
     return await CitySchema.query(trx).deleteById(citySchema.id).returning('*').first();
   }
 

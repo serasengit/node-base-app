@@ -61,7 +61,7 @@ export class UserRepositoryImpl implements UserRepository {
    *
    * Optional relations can be loaded using query params.
    */
-  public async findById(id: number, params: QueryParams = {}): Promise<UserSchema | undefined> {
+  public async findById(id: number, params: QueryParams = {}): Promise<UserSchema> {
     const qb = UserSchema.query(params.trx);
 
     if (params.relations) this.applyRelations(qb, params.relations);
@@ -74,7 +74,7 @@ export class UserRepositoryImpl implements UserRepository {
    *
    * Optional relations can be loaded using query params.
    */
-  public async findByUsername(username: string, params?: QueryParams): Promise<UserSchema | undefined> {
+  public async findByUsername(username: string, params?: QueryParams): Promise<UserSchema> {
     const qb = UserSchema.query(params?.trx);
 
     if (params?.relations) {
@@ -116,7 +116,7 @@ export class UserRepositoryImpl implements UserRepository {
   /**
    * Deletes a user and returns the deleted record when available.
    */
-  public async delete(trx: Transaction, userSchema: UserSchema): Promise<UserSchema | undefined> {
+  public async delete(trx: Transaction, userSchema: UserSchema): Promise<UserSchema> {
     return await UserSchema.query(trx).deleteById(userSchema.id).returning('*').first();
   }
 

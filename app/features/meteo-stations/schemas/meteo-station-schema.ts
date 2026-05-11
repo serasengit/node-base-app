@@ -35,7 +35,7 @@ export default class MeteoStationSchema extends Model {
    */
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
-    required: ['name', 'longitude', 'latitude', 'cityId'],
+    required: ['name'],
     properties: {
       id: {
         type: 'integer'
@@ -48,19 +48,19 @@ export default class MeteoStationSchema extends Model {
       },
 
       longitude: {
-        type: 'number',
+        type: ['number', 'null'],
         minimum: -180,
         maximum: 180
       },
 
       latitude: {
-        type: 'number',
+        type: ['number', 'null'],
         minimum: -90,
         maximum: 90
       },
 
       cityId: {
-        type: 'integer'
+        type: ['integer', 'null']
       },
       createdById: { type: ['integer', 'null'] },
       updatedById: { type: ['integer', 'null'] },

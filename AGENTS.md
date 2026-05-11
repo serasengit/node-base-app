@@ -1,6 +1,6 @@
-# AGENTS
+# AGENTS 🤖
 
-## Purpose
+## 🎯 Purpose
 
 This repository is a TypeScript + Express backend skeleton organized by features and shared core layers.
 
@@ -13,7 +13,7 @@ Its main functional areas are:
 - OpenAPI generation and Swagger UI exposure
 - Integration-style API tests with Mocha + Chai
 
-## Project Structure
+## 🗂️ Project Structure
 
 - `app/bootstrap`: startup wiring and runtime configuration
 - `app/core`: reusable controllers, repositories, middlewares, route helpers and shared types
@@ -24,7 +24,7 @@ Its main functional areas are:
 - `db/*/seeds`: seed data per environment
 - `environments`: env files for `dev` and `test`
 
-## Feature Pattern
+## 🧩 Feature Pattern
 
 Each feature should follow this structure when applicable:
 
@@ -42,7 +42,7 @@ Existing reference implementations:
 - `app/features/meteo-stations`
 - `app/features/users`
 
-## Endpoint Pattern
+## 🔌 Endpoint Pattern
 
 When adding or modifying endpoints, follow this order:
 
@@ -56,7 +56,7 @@ When adding or modifying endpoints, follow this order:
 8. Update `app/docs/openapi.ts` for public API changes
 9. Update `README.md` if the feature or behavior is externally relevant
 
-## Auth And RBAC Rules
+## 🔐 Auth And RBAC Rules
 
 - Protected route groups are mounted in `app/core/routes/api-routes.ts`
 - Authentication uses `AuthMiddleware`
@@ -64,7 +64,7 @@ When adding or modifying endpoints, follow this order:
 - CRUD route protection maps to `GrantType.CanRead|CanCreate|CanEdit|CanDelete`
 - Module-level authorization must use `ModuleCode`
 
-## Audit Rules
+## 🕵️ Audit Rules
 
 For writable resources that support audit fields:
 
@@ -79,7 +79,7 @@ Current resources using this pattern:
 - `cities`
 - `meteo-stations`
 
-## Service Conventions
+## ⚙️ Service Conventions
 
 - Services own business rules
 - Services start and manage transactions when multiple repository actions are involved
@@ -87,14 +87,14 @@ Current resources using this pattern:
 - Services translate uniqueness collisions into `ConflictError`
 - Services should keep logging consistent with existing modules
 
-## Repository Conventions
+## 🗄️ Repository Conventions
 
 - Repositories own query construction
 - Use `find`, `findById`, `save`, `update`, `delete` consistently when the resource is CRUD-based
 - Use `applyRelations`, `applyFilters` and `applyOrder` for list endpoints when needed
 - Keep relation includes explicit and validated at route-schema level
 
-## Testing Conventions
+## 🧪 Testing Conventions
 
 - Integration tests live next to the feature under `tests/*.spec.ts`
 - Use seeded users for authentication helpers
@@ -102,7 +102,7 @@ Current resources using this pattern:
 - Clean up inserted data in `afterEach`
 - Prefer verifying persisted DB state for create/update/delete flows
 
-## Documentation Conventions
+## 📘 Documentation Conventions
 
 - Public endpoint changes should be reflected in `app/docs/openapi.ts`
 - README updates are required when:
@@ -111,7 +111,7 @@ Current resources using this pattern:
   - auth/RBAC behavior changes
   - test/bootstrap setup changes
 
-## Commands
+## 🛠️ Commands
 
 - Build: `npm.cmd run build`
 - Tests: `npm.cmd run test`
@@ -121,7 +121,7 @@ Current resources using this pattern:
 - Migrations: `npm.cmd run knex:migrate:latest --env=dev`
 - Seeds: `npm.cmd run knex:seed:run --env=dev`
 
-## Important Notes
+## 📌 Important Notes
 
 - `users` live in the `rbac` schema
 - `cities` and `meteo_stations` live in the `public` schema

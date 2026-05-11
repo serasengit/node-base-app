@@ -16,7 +16,7 @@ export interface QueryFilters {
  * - include: ['city']
  */
 export interface QueryRelations {
-  [key: string]: boolean | string[] | undefined;
+  [key: string]: boolean | string[];
 }
 
 /**
@@ -85,7 +85,7 @@ export interface ReadOnlyRepository<T, TId = number> {
   /**
    * Finds a single record by its identifier.
    */
-  findById(id: TId, params?: QueryParams): Promise<T | undefined>;
+  findById(id: TId, params?: QueryParams): Promise<T>;
 }
 
 /**

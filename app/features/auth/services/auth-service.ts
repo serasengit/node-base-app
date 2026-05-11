@@ -1,6 +1,7 @@
 import { APICode, Language } from '@api-messages/api-messages';
 import { ForbiddenError } from '@api-messages/errors/forbidden-error';
 import { UnauthorizedError } from '@api-messages/errors/unauthorized-error';
+import { appConfig } from '@bootstrap/config';
 import { QueryParams, QueryRelations } from '@core/repositories/base-repository';
 import {
   AccessTokenPayload,
@@ -60,11 +61,11 @@ class AuthService {
    */
   public async refreshToken(req: express.Request, res: express.Response): Promise<RefreshTokenResponseDTO> {
     try {
-      const serializedRefreshToken = this.getCookieValue(req.headers.cookie, 'refreshToken');
+      const serializedRefreshToken = req.cookies?.refreshToken as string;
 
       if (!serializedRefreshToken) throw new UnauthorizedError(APICode.SessionExpired);
 
-      const payload = toRefreshTokenPayload(verify(serializedRefreshToken, process.env.JWT_REFRESH_SECRET_KEY as string));
+      const payload = toRefreshTokenPayload(verify(serializedRefreshToken, appConfig.auth.refreshSecretKey));
       const user = await this.userService.findById(payload.userId, <QueryParams>{
         relations: <QueryRelations>{ include: ['role'] }
       });
@@ -143,56 +144,61 @@ class AuthService {
    * Generates an access token for the authenticated user.
    */
   private generateAccessToken(payload: AccessTokenPayload): string {
-    return sign(
-      payload,
-      process.env.JWT_ACCESS_SECRET_KEY as string,
-      {
-        expiresIn: process.env.JWT_ACCESS_EXPIRATION_TIME
-      } as SignOptions
-    );
+    return sign(payload, appConfig.auth.accessSecretKey, {
+      expiresIn: appConfig.auth.accessExpirationTime
+    } as SignOptions);
   }
 
   /**
    * Generates a refresh token for the authenticated user session.
    */
   private generateRefreshToken(payload: RefreshTokenPayload): string {
-    return sign(
-      payload,
-      process.env.JWT_REFRESH_SECRET_KEY as string,
-      {
-        expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME
-      } as SignOptions
-    );
+    return sign(payload, appConfig.auth.refreshSecretKey, {
+      expiresIn: appConfig.auth.refreshExpirationTime
+    } as SignOptions);
   }
 
   /**
-   * Sets the refresh token cookie using environment-aware security defaults.
+   * Sets the refresh token as an HTTP-only cookie.
+   *
+   * The refresh token is stored in a cookie because the frontend does not need
+   * to read it directly. The browser will automatically send it to the backend
+   * when the refresh endpoint is called.
    */
   private setRefreshTokenCookie(res: express.Response, refreshToken: string): void {
-    const rawEnv = (process.env.NODE_ENV || 'dev').trim().toLowerCase();
-    const isProduction = rawEnv === 'prod' || rawEnv === 'production';
-
     res.cookie('refreshToken', refreshToken, {
+      // Prevents JavaScript from reading the cookie through document.cookie.
+      // This reduces the risk of refresh token theft in case of XSS.
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: Number.parseInt(process.env.JWT_MAX_INACTIVE_TIME, 10)
+
+      // Ensures the cookie is only sent over HTTPS in production.
+      secure: appConfig.isProduction,
+
+      // Allows cross-site cookie usage in production when frontend and backend
+      // are hosted on different domains. Uses a safer default for local development.
+      sameSite: appConfig.isProduction ? 'none' : 'lax',
+
+      // Defines how long the refresh token cookie remains valid in the browser.
+      maxAge: appConfig.auth.refreshMaxInactiveTimeMs
     });
   }
 
   /**
-   * Retrieves a cookie value from the raw Cookie header.
+   * Logs out the current user by clearing the refresh token cookie.
    */
-  private getCookieValue(cookieHeader: string | string[] | undefined, cookieName: string): string | undefined {
-    const serializedHeader = Array.isArray(cookieHeader) ? cookieHeader[0] : cookieHeader;
+  public logout(res: express.Response): void {
+    this.clearRefreshTokenCookie(res);
+  }
 
-    if (!serializedHeader) return undefined;
-
-    return serializedHeader
-      .split(';')
-      .map((entry) => entry.trim())
-      .find((entry) => entry.startsWith(`${cookieName}=`))
-      ?.slice(cookieName.length + 1);
+  /**
+   * Clears the refresh token cookie from the browser.
+   */
+  private clearRefreshTokenCookie(res: express.Response): void {
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: appConfig.isProduction,
+      sameSite: appConfig.isProduction ? 'none' : 'lax'
+    });
   }
 }
 

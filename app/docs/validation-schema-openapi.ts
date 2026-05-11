@@ -19,7 +19,7 @@ type ValidationRule = Record<string, any>;
  *
  * ['A', 'B']
  */
-function normalizeEnumOptions(options: unknown): unknown[] | undefined {
+function normalizeEnumOptions(options: unknown): unknown[] {
   if (!Array.isArray(options)) return undefined;
   if (options.length === 1 && Array.isArray(options[0])) return options[0];
   return options;
@@ -298,7 +298,7 @@ function assignPath(target: OpenApiObject, path: string, rule: ValidationRule): 
  *
  * Body fields are ignored here and handled by `bodySchemaFromValidationSchemas`.
  */
-export function parametersFromValidationSchemas(...schemas: Array<Schema | undefined>): OpenApiObject[] {
+export function parametersFromValidationSchemas(...schemas: Array<Schema>): OpenApiObject[] {
   const parameters = new Map<string, OpenApiObject>();
 
   for (const schema of schemas) {
@@ -336,7 +336,7 @@ export function parametersFromValidationSchemas(...schemas: Array<Schema | undef
  * - tags.*
  * - addresses.*.street
  */
-export function bodySchemaFromValidationSchemas(...schemas: Array<Schema | undefined>): OpenApiObject | null {
+export function bodySchemaFromValidationSchemas(...schemas: Array<Schema>): OpenApiObject | null {
   const root: OpenApiObject = {
     type: 'object',
     properties: {}
@@ -364,7 +364,7 @@ export function bodySchemaFromValidationSchemas(...schemas: Array<Schema | undef
 /**
  * Wraps the generated body schema into a standard OpenAPI JSON request body.
  */
-export function jsonRequestBodyFromValidationSchemas(...schemas: Array<Schema | undefined>): OpenApiObject | null {
+export function jsonRequestBodyFromValidationSchemas(...schemas: Array<Schema>): OpenApiObject | null {
   const schema = bodySchemaFromValidationSchemas(...schemas);
   if (!schema) return null;
 

@@ -6,9 +6,10 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import { Container } from 'typedi';
 
+import { NotFoundError } from '@api-messages/errors/not-found-error';
 import logger from '@logger/logger';
 import { Logger } from 'winston';
-import { HttpError, errorHandler, notFoundHandler, validateRequestParameters } from '../error-handler';
+import { errorHandler, notFoundHandler, validateRequestParameters } from '../error-handler';
 
 type TranslationCall = {
   code: string;
@@ -118,7 +119,7 @@ describe('Error Handler Middleware', () => {
   });
 
   describe('notFoundHandler', () => {
-    it('should forward a HttpError with route details', () => {
+    it('should forward a BaseError with route details', () => {
       const req = createRequest({ method: 'POST', originalUrl: '/missing-route' });
       let forwardedError: unknown;
 
@@ -126,7 +127,7 @@ describe('Error Handler Middleware', () => {
         forwardedError = error;
       });
 
-      expect(forwardedError).to.be.instanceOf(HttpError);
+      expect(forwardedError).to.be.instanceOf(BaseError);
       expect(forwardedError).to.have.property('status', StatusCode.ClientErrorNotFound);
       expect(forwardedError).to.have.property('message', 'Route not found: POST /missing-route');
     });
@@ -195,19 +196,19 @@ describe('Error Handler Middleware', () => {
       });
     });
 
-    it('should return explicit HttpError responses', async () => {
+    it('should return translated not found errors', async () => {
       const req = createRequest({ originalUrl: '/meteo-stations/999' });
       const res = createResponse();
-      const error = new HttpError(StatusCode.ClientErrorNotFound, 'Station not found', { stationId: 999 });
+      const error = new NotFoundError(APICode.MeteoStationNotFound, { details: 'stationId=999' });
 
       await errorHandler(error, req as never, res as never, (() => undefined) as never);
 
       expect(res.statusCode).to.equal(StatusCode.ClientErrorNotFound);
       expect(res.body).to.deep.equal({
-        code: APICode.InternalServerError,
+        code: APICode.MeteoStationNotFound,
         status: StatusCode.ClientErrorNotFound,
-        message: 'Station not found',
-        details: { stationId: 999 }
+        message: 'translated:es:meteo_station_not_found: stationId=999',
+        details: 'stationId=999'
       });
     });
 

@@ -9,17 +9,6 @@ import TranslationService from '@features/translations/services/translation-serv
 import logger from '../logger/logger';
 
 /**
- * Generic HTTP error used to propagate an explicit HTTP status code
- * through the Express error handling middleware.
- */
-export class HttpError extends Error {
-  constructor(public readonly status: number, message: string, public readonly details?: unknown) {
-    super(message);
-    this.name = 'HttpError';
-  }
-}
-
-/**
  * Express middleware that validates request parameters using express-validator.
  *
  * If validation errors are found, a BaseError is thrown with HTTP 422 status.
@@ -46,7 +35,9 @@ export function validateRequestParameters(req: express.Request, _res: express.Re
  * This should be registered after all application routes.
  */
 export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
-  next(new HttpError(404, `Route not found: ${req.method} ${req.originalUrl}`));
+  const error = new BaseError(APICode.ClientErrorNotFound, StatusCode.ClientErrorNotFound);
+  error.message = `Route not found: ${req.method} ${req.originalUrl}`;
+  next(error);
 }
 
 /**
@@ -118,17 +109,6 @@ export async function errorHandler(error: Error, req: Request, res: Response, _n
         `Error in ${req.method} ${req.originalUrl}: code: ${code}, message: ${message}, details: ${JSON.stringify(
           details
         )}, errors: ${JSON.stringify(errors)}, stack: ${error.stack}`
-      );
-    } else if (error instanceof HttpError) {
-      // Handle explicit HTTP errors, such as not found routes.
-      status = error.status;
-      message = error.message || message;
-      details = error.details;
-
-      logger.error(
-        `Error in ${req.method} ${req.originalUrl}: status: ${status}, message: ${message}, details: ${JSON.stringify(details)}, stack: ${
-          error.stack
-        }`
       );
     } else {
       // Handle unexpected errors.

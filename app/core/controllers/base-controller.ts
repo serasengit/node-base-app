@@ -11,7 +11,7 @@ export class BaseController {
    * Express query parameters can be received as arrays when the same parameter
    * is sent multiple times.
    */
-  protected getSingleValue<T>(value: T | T[] | undefined): T | undefined {
+  protected getSingleValue<T>(value: T | T[]): T {
     if (Array.isArray(value)) return value[0];
 
     return value;
@@ -22,7 +22,7 @@ export class BaseController {
    *
    * Returns undefined when the value is empty or cannot be converted to a valid number.
    */
-  parseNumber(value: string | number | Array<string | number> | undefined): number | undefined {
+  parseNumber(value: string | number | Array<string | number>): number {
     value = this.getSingleValue(value);
 
     if (!value) return undefined;
@@ -38,7 +38,7 @@ export class BaseController {
    * Example:
    * "createdBy,updatedBy" -> ["createdBy", "updatedBy"]
    */
-  parseArray(value: string | undefined | Array<string>): string[] | undefined {
+  parseArray(value: string | Array<string>): string[] {
     if (typeof value === 'string') {
       return value
         .split(',')

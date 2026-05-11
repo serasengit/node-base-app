@@ -12,8 +12,7 @@ export interface ErrorContext {
 }
 
 /**
- * @summary BaseError
- * @description Class defining the error object returned by the server.
+ * Class defining the error object returned by the server.
  */
 export class BaseError extends Error {
   code: APICode;

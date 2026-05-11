@@ -1,22 +1,23 @@
 import { Knex } from 'knex';
 import { knexSnakeCaseMappers } from 'objection';
+import { appConfig } from './app/bootstrap/config';
 
 export const knexConfig: Knex.Config = {
   client: 'pg',
   connection: {
-    user: process.env.POSTGRES_USER,
-    database: process.env.POSTGRES_DB,
-    password: process.env.POSTGRES_PASSWORD,
-    port: Number.parseInt(process.env.POSTGRES_PORT as string),
-    host: process.env.IS_DOCKER ? `${process.env.DOCKER_CONTAINER_NAME}-postgres` : process.env.POSTGRES_HOST,
+    user: appConfig.database.user,
+    database: appConfig.database.database,
+    password: appConfig.database.password,
+    port: appConfig.database.port,
+    host: appConfig.database.isDocker ? `${appConfig.database.dockerContainerName}-postgres` : appConfig.database.host,
     timezone: 'UTC'
   },
   searchPath: ['public', 'master', 'rbac'],
   migrations: {
-    directory: `db/${process.env.NODE_ENV}/migrations`
+    directory: `db/${appConfig.nodeEnv}/migrations`
   },
   seeds: {
-    directory: `db/${process.env.NODE_ENV}/seeds`
+    directory: `db/${appConfig.nodeEnv}/seeds`
   },
   ...knexSnakeCaseMappers()
 };
