@@ -88,7 +88,7 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
       summary: 'Sample credentials',
       value: {
         username: 'system_admin',
-        password: 'Admin123!'
+        password: '<user-password>'
       }
     }
   };
@@ -117,7 +117,7 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
       summary: 'Sample user',
       value: {
         username: 'readonly_2',
-        password: 'Readonly123!',
+        password: '<user-password>',
         nif: '12345678A',
         name: 'Read Only User 2',
         email: 'readonly2@example.com',
