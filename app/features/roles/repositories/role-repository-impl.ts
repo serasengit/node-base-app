@@ -1,5 +1,3 @@
-import { NotImplementedMethodError } from '@api-messages/errors/non-implemented-method-error';
-
 import { GrantType } from '@features/grants/schemas/grant-schema';
 import { Service } from 'typedi';
 import RoleSchema, { RoleCode } from '../schemas/role-schema';
@@ -7,11 +5,6 @@ import { RoleRepository } from './role-repository';
 
 @Service('roleRepository')
 export class RoleRepositoryImpl implements RoleRepository {
-  /* istanbul ignore next */
-  public async exists(roleSchema: RoleSchema): Promise<Record<string, boolean>> {
-    throw new NotImplementedMethodError();
-  }
-
   public async findById(id: number): Promise<RoleSchema> {
     return await RoleSchema.query().findById(id);
   }

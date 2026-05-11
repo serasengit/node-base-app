@@ -247,12 +247,11 @@ describe('Cities API', function () {
     });
 
     it('should return 404 when updating a non existing city', async () => {
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken)
-        .send({
-          name: uniqueCityName('MISSING'),
-          province: 'Madrid',
-          country: 'Spain'
-        });
+      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
+        name: uniqueCityName('MISSING'),
+        province: 'Madrid',
+        country: 'Spain'
+      });
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.CityNotFound);

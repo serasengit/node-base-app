@@ -1,10 +1,6 @@
 import { APICode, Language } from '@api-messages/api-messages';
 import { UnauthorizedError } from '@api-messages/errors/unauthorized-error';
-import {
-  getBearerTokenFromAuthHeader,
-  toAccessTokenPayload,
-  toRefreshTokenPayload
-} from '@features/auth/dtos/auth-dto';
+import { getBearerTokenFromAuthHeader, toAccessTokenPayload, toRefreshTokenPayload } from '@features/auth/dtos/auth-dto';
 import { RoleCode } from '@features/roles/schemas/role-schema';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';

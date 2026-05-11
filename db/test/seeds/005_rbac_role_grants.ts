@@ -38,7 +38,9 @@ export async function seed(knex: Knex): Promise<void> {
         const moduleRow = await trx.withSchema('rbac').table('modules').select('id').where('code', grant.moduleCode).first();
         if (!moduleRow) throw new Error(`Module not found: ${grant.moduleCode}`);
 
-        const grantRow = await trx.withSchema('rbac').table('grants')
+        const grantRow = await trx
+          .withSchema('rbac')
+          .table('grants')
           .select('id')
           .where('module_id', moduleRow.id)
           .andWhere('can_read', grant.canRead)

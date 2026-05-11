@@ -5,12 +5,15 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.withSchema('rbac').table('roles').del();
 
   // Insert seed entries
-  await knex.withSchema('rbac').table('roles').insert([
-    {
-      code: 'system_administrator'
-    },
-    {
-      code: 'read_only'
-    }
-  ]);
+  await knex
+    .withSchema('rbac')
+    .table('roles')
+    .insert([
+      {
+        code: 'system_administrator'
+      },
+      {
+        code: 'read_only'
+      }
+    ]);
 }

@@ -4,9 +4,9 @@ import { UnauthorizedError } from '@api-messages/errors/unauthorized-error';
 import { QueryParams, QueryRelations } from '@core/repositories/base-repository';
 import {
   AccessTokenPayload,
+  AuthenticatedUserDTO,
   AuthRequestDTO,
   AuthResponseDTO,
-  AuthenticatedUserDTO,
   RefreshTokenPayload,
   RefreshTokenResponseDTO,
   toRefreshTokenPayload
@@ -17,7 +17,7 @@ import UserService from '@features/users/services/user-service';
 import logger from '@logger/logger';
 import { compare } from 'bcrypt';
 import express from 'express';
-import jwt, { SignOptions, TokenExpiredError } from 'jsonwebtoken';
+import { sign, SignOptions, TokenExpiredError, verify } from 'jsonwebtoken';
 import { Inject, Service } from 'typedi';
 
 @Service()
@@ -64,7 +64,7 @@ class AuthService {
 
       if (!serializedRefreshToken) throw new UnauthorizedError(APICode.SessionExpired);
 
-      const payload = toRefreshTokenPayload(jwt.verify(serializedRefreshToken, process.env.JWT_REFRESH_SECRET_KEY as string));
+      const payload = toRefreshTokenPayload(verify(serializedRefreshToken, process.env.JWT_REFRESH_SECRET_KEY as string));
       const user = await this.userService.findById(payload.userId, <QueryParams>{
         relations: <QueryRelations>{ include: ['role'] }
       });
@@ -143,18 +143,26 @@ class AuthService {
    * Generates an access token for the authenticated user.
    */
   private generateAccessToken(payload: AccessTokenPayload): string {
-    return jwt.sign(payload, process.env.JWT_ACCESS_SECRET_KEY as string, {
-      expiresIn: process.env.JWT_ACCESS_EXPIRATION_TIME
-    } as SignOptions);
+    return sign(
+      payload,
+      process.env.JWT_ACCESS_SECRET_KEY as string,
+      {
+        expiresIn: process.env.JWT_ACCESS_EXPIRATION_TIME
+      } as SignOptions
+    );
   }
 
   /**
    * Generates a refresh token for the authenticated user session.
    */
   private generateRefreshToken(payload: RefreshTokenPayload): string {
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET_KEY as string, {
-      expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME
-    } as SignOptions);
+    return sign(
+      payload,
+      process.env.JWT_REFRESH_SECRET_KEY as string,
+      {
+        expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME
+      } as SignOptions
+    );
   }
 
   /**

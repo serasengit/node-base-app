@@ -276,12 +276,11 @@ describe('Meteo Stations API', function () {
     });
 
     it('should return 404 when updating a non existing meteo station', async () => {
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken)
-        .send({
-          name: uniqueStationName('MISSING'),
-          longitude: 1.1,
-          latitude: 2.2
-        });
+      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
+        name: uniqueStationName('MISSING'),
+        longitude: 1.1,
+        latitude: 2.2
+      });
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.MeteoStationNotFound);

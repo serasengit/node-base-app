@@ -64,7 +64,7 @@ export class GrantMiddleware {
    *   invalid access token error.
    */
   private getAccessTokenPayload(req: express.Request): ReturnType<typeof toAccessTokenPayload> {
-      const authenticatedRequest = req as AuthenticatedRequest;
+    const authenticatedRequest = req as AuthenticatedRequest;
 
     if (authenticatedRequest.auth) return authenticatedRequest.auth;
 
