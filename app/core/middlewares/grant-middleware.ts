@@ -39,7 +39,9 @@ export class GrantMiddleware {
 
         const hasGrantTypeOverModule = await this.roleService.hasGrantTypeOverModule(tokenInfo.roleCode, moduleCode, grantType);
 
-        if (!hasGrantTypeOverModule) throw new ForbiddenError(APICode.InvalidGrants);
+        if (!hasGrantTypeOverModule) {
+          throw new ForbiddenError(APICode.InvalidGrants);
+        }
 
         next();
       } catch (error) {

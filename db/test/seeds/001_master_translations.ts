@@ -9,6 +9,8 @@ export async function seed(knex: Knex): Promise<void> {
     .withSchema('master')
     .insert([
       // API GENERAL ERROR MESSAGES
+      { code: 'client_error_not_found', language: 'en', text: 'Resource not found' },
+      { code: 'client_error_not_found', language: 'es', text: 'Recurso no encontrado' },
       { code: 'internal_server_error', language: 'en', text: 'Internal server error' },
       { code: 'internal_server_error', language: 'es', text: 'Error interno del servidor' },
       { code: 'server_error_not_implemented', language: 'en', text: 'Server error not implemented' },

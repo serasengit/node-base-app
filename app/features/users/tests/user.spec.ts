@@ -5,7 +5,7 @@ import { knex, Knex } from 'knex';
 import { after, afterEach, before, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import app from '../../../../server';
-import { loginAsSystemAdmin, withBearerToken } from '../../../test-setup/auth-test-helper';
+import { loginAsReadOnly, loginAsSystemAdmin, withBearerToken } from '../../../test-setup/auth-test-helper';
 
 chai.use(chaiHttp);
 
@@ -24,6 +24,7 @@ const db: Knex = knex({
 const API_ENDPOINT = `/${process.env.SERVER_API}/users`;
 const TEST_PREFIX = 'TEST_USER_';
 let accessToken = '';
+let readonlyAccessToken = '';
 
 type UserRecord = {
   id: number;
@@ -114,6 +115,7 @@ async function cleanupTestUsers(): Promise<void> {
 describe('Users API', function () {
   before(async () => {
     accessToken = await loginAsSystemAdmin();
+    readonlyAccessToken = await loginAsReadOnly();
   });
 
   afterEach(async () => {
@@ -132,6 +134,7 @@ describe('Users API', function () {
       expect(response.body).to.have.property('total').that.is.a('number');
       expect(response.body).to.have.property('records').that.is.an('array');
       expect(response.body.records[0]).to.include.all.keys('id', 'username', 'nif', 'isActive');
+      expect(response.body.records[0]).to.not.have.property('password');
     });
 
     it('should filter users by textSearch', async () => {
@@ -163,6 +166,7 @@ describe('Users API', function () {
         username: user.username,
         nif: user.nif
       });
+      expect(response.body).to.not.have.property('password');
     });
 
     it('should include role, createdBy and updatedBy when requested', async () => {
@@ -229,6 +233,7 @@ describe('Users API', function () {
         language: payload.language,
         isActive: payload.isActive
       });
+      expect(response.body).to.not.have.property('password');
 
       const persisted = await db<UserRecord>('rbac.users').where({ username: payload.username }).first();
       expect(persisted).to.not.equal(undefined);
@@ -302,6 +307,7 @@ describe('Users API', function () {
         language: user.language,
         isActive: user.is_active
       });
+      expect(response.body).to.not.have.property('password');
 
       const persisted = await db<UserRecord>('rbac.users').where({ id: user.id }).first();
       expect(persisted.updated_by_id).to.equal(systemAdmin.id);
@@ -333,6 +339,7 @@ describe('Users API', function () {
         language: payload.language,
         isActive: payload.isActive
       });
+      expect(response.body).to.not.have.property('password');
 
       const persisted = await db<UserRecord>('rbac.users').where({ id: user.id }).first();
       expect(persisted.username).to.equal(payload.username);
@@ -393,6 +400,23 @@ describe('Users API', function () {
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.UserNotFound);
     });
+
+    it('should reject read-only users when updating a user', async () => {
+      const user = await insertTestUser();
+
+      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${user.id}`), readonlyAccessToken).send({
+        username: user.username,
+        nif: user.nif,
+        name: user.name,
+        email: user.email,
+        language: user.language,
+        roleId: user.role_id,
+        isActive: user.is_active
+      });
+
+      expect(response).to.have.status(StatusCode.ClientErrorForbidden);
+      expect(response.body).to.have.property('code', APICode.InvalidGrants);
+    });
   });
 
   describe('DELETE /users/:id', () => {
@@ -405,6 +429,15 @@ describe('Users API', function () {
 
       const deleted = await db<UserRecord>('rbac.users').where({ id: user.id }).first();
       expect(deleted).to.equal(undefined);
+    });
+
+    it('should reject read-only users when deleting a user', async () => {
+      const user = await insertTestUser();
+
+      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${user.id}`), readonlyAccessToken);
+
+      expect(response).to.have.status(StatusCode.ClientErrorForbidden);
+      expect(response.body).to.have.property('code', APICode.InvalidGrants);
     });
   });
 });

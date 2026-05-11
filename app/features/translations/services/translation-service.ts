@@ -10,7 +10,7 @@ class TranslationService {
   @Inject('translationRepository') private readonly translationRepository!: TranslationRepository;
 
   /**
-   * @summary Retrieves the translation text for a given code and language.
+   * Retrieves the translation text for a given code and language.
    */
   public async findTranslationTextByCodeAndLanguage(code: string, language: Language = Language.Spanish): Promise<string> {
     try {

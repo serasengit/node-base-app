@@ -1,6 +1,5 @@
 /**
- * @summary Language
- * @description Enum where we define all languages handled by the server
+ * Enum where we define all languages handled by the server
  */
 export enum Language {
   English = 'en',
@@ -8,10 +7,10 @@ export enum Language {
 }
 
 /**
- * @summary APICode
- * @description API code list that is returned by the server
+ * API code list that is returned by the server
  */
 export enum APICode {
+  ClientErrorNotFound = 'client_error_not_found',
   InternalServerError = 'internal_server_error',
   ServerErrorNotImplemented = 'server_error_not_implemented',
   ClientErrorUnprocessableEntity = 'client_error_unprocessable_entity',
@@ -39,8 +38,7 @@ export enum APICode {
 }
 
 /**
- * @summary APIMessage
- * @description Interface where we define the message translations of each API code
+ * Interface where we define the message translations of each API code
  */
 export type APIMessage = {
   [code in APICode]: { [Language.English]: string; [Language.Spanish]: string };

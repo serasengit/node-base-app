@@ -12,7 +12,7 @@ class MeteoStationController extends BaseController {
   @Inject(() => MeteoStationService) private readonly meteoStationService!: MeteoStationService;
 
   /**
-   * @summary Find meteo station by id
+   * Find meteo station by id
    */
   async findById(req: express.Request, res: express.Response): Promise<express.Response<MeteoStationDTO>> {
     // Query meteo station by id
@@ -25,7 +25,7 @@ class MeteoStationController extends BaseController {
   }
 
   /**
-   * @summary Find meteo stations
+   * Find meteo stations
    */
   async find(req: express.Request, res: express.Response): Promise<express.Response<QueryResponse<MeteoStationDTO>>> {
     // Query paged meteo stations
@@ -43,7 +43,7 @@ class MeteoStationController extends BaseController {
   }
 
   /**
-   * @summary Create meteo station
+   * Create meteo station
    */
   async create(req: express.Request, res: express.Response): Promise<express.Response<MeteoStationDTO>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
@@ -53,7 +53,7 @@ class MeteoStationController extends BaseController {
   }
 
   /**
-   * @summary Update meteo station
+   * Update meteo station
    */
   async update(req: express.Request, res: express.Response): Promise<express.Response<MeteoStationDTO>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
@@ -69,7 +69,7 @@ class MeteoStationController extends BaseController {
   }
 
   /**
-   * @summary Delete meteo station
+   * Delete meteo station
    */
   async delete(req: express.Request, res: express.Response): Promise<express.Response<void>> {
     await this.meteoStationService.delete(this.parseNumber(req.params.id));

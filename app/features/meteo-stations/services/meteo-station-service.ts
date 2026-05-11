@@ -14,7 +14,7 @@ class MeteoStationService {
   @Inject('meteoStationRepository') private readonly meteoStationRepository: MeteoStationRepository;
 
   /**
-   * @summary Retrieves meteo stations based on provided query parameters.
+   * Retrieves meteo stations based on provided query parameters.
    */
   public async find(params: QueryParams): Promise<QueryResponse<MeteoStationDTO>> {
     // Retrieve meteo station records from the repository
@@ -25,7 +25,7 @@ class MeteoStationService {
   }
 
   /**
-   * @summary Retrieves a meteo station by its ID.
+   * Retrieves a meteo station by its ID.
    */
   public async findById(id: number, params: QueryParams = {}): Promise<MeteoStationDTO> {
     const meteoStationSchema = await this.meteoStationRepository.findById(id, params);
@@ -34,7 +34,7 @@ class MeteoStationService {
   }
 
   /**
-   * @summary Creates a new meteo station.
+   * Creates a new meteo station.
    */
   public async create(meteoStation: MeteoStationDTO, authenticatedUserId: number): Promise<MeteoStationDTO> {
     const trx = await transaction.start(MeteoStationSchema.knex());
@@ -67,7 +67,7 @@ class MeteoStationService {
   }
 
   /**
-   * @summary Updates a new meteo station.
+   * Updates a new meteo station.
    */
   public async update(meteoStation: MeteoStationDTO, authenticatedUserId: number): Promise<MeteoStationDTO> {
     const trx = await transaction.start(MeteoStationSchema.knex());
@@ -101,7 +101,7 @@ class MeteoStationService {
   }
 
   /**
-   * @summary Deletes a meteo station by its ID.
+   * Deletes a meteo station by its ID.
    */
   public async delete(id: number): Promise<void> {
     const trx = await transaction.start(MeteoStationSchema.knex());

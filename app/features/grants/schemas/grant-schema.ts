@@ -37,15 +37,15 @@ export default class GrantSchema extends Model {
   // is created it is checked against this schema. http://json-schema.org/.
   static readonly jsonSchema: JSONSchema = {
     type: 'object',
-    required: ['moduleId', 'canRead', 'canCreate', 'canEdit', 'canDelete'],
+    required: ['moduleId', 'description', 'canRead', 'canCreate', 'canEdit', 'canDelete'],
     properties: {
       id: { type: 'integer' },
       moduleId: { type: 'integer', minimum: 1 },
       description: { type: 'string', minLength: 1, maxLength: 255 },
-      canRead: { type: ['boolean', 'null'], default: false },
-      canCreate: { type: ['boolean', 'null'], default: false },
-      canEdit: { type: ['boolean', 'null'], default: false },
-      canDelete: { type: ['boolean', 'null'], default: false },
+      canRead: { type: 'boolean', default: false },
+      canCreate: { type: 'boolean', default: false },
+      canEdit: { type: 'boolean', default: false },
+      canDelete: { type: 'boolean', default: false },
       createdAt: { type: ['string', 'null'], format: 'date-time' },
       updatedAt: { type: ['string', 'null'], format: 'date-time' }
     }

@@ -12,7 +12,7 @@ class CityController extends BaseController {
   @Inject(() => CityService) private readonly cityService!: CityService;
 
   /**
-   * @summary Find city by id
+   * Find city by id
    */
   async findById(req: express.Request, res: express.Response): Promise<express.Response<CityDTO>> {
     // Query city by id
@@ -26,7 +26,7 @@ class CityController extends BaseController {
   }
 
   /**
-   * @summary Find cities
+   * Find cities
    */
   async find(req: express.Request, res: express.Response): Promise<express.Response<QueryResponse<CityDTO>>> {
     // Query paged cities
@@ -44,7 +44,7 @@ class CityController extends BaseController {
   }
 
   /**
-   * @summary Create city
+   * Create city
    */
   async create(req: express.Request, res: express.Response): Promise<express.Response<CityDTO>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
@@ -54,7 +54,7 @@ class CityController extends BaseController {
   }
 
   /**
-   * @summary Update city
+   * Update city
    */
   async update(req: express.Request, res: express.Response): Promise<express.Response<CityDTO>> {
     const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
@@ -71,7 +71,7 @@ class CityController extends BaseController {
   }
 
   /**
-   * @summary Delete city
+   * Delete city
    */
   async delete(req: express.Request, res: express.Response): Promise<express.Response<void>> {
     await this.cityService.delete(this.parseNumber(req.params.id));

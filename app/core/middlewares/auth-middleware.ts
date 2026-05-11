@@ -4,8 +4,10 @@ import { UnauthorizedError } from '@api-messages/errors/unauthorized-error';
 import { AuthenticatedRequest } from '@core/types/authenticated-request';
 import { getBearerTokenFromAuthHeader, toAccessTokenPayload } from '@features/auth/dtos/auth-dto';
 import UserService from '@features/users/services/user-service';
+import { appConfig } from '@bootstrap/config';
 import express from 'express';
 import { TokenExpiredError, verify } from 'jsonwebtoken';
+import { updateRequestContext } from '@logger/request-context';
 import { Inject, Service } from 'typedi';
 
 @Service()
@@ -28,7 +30,7 @@ export class AuthMiddleware {
     try {
       const authenticatedRequest = req as AuthenticatedRequest;
       const accessToken = getBearerTokenFromAuthHeader(req.headers['authorization']);
-      authenticatedRequest.auth = toAccessTokenPayload(verify(accessToken, process.env.JWT_ACCESS_SECRET_KEY as string));
+      authenticatedRequest.auth = toAccessTokenPayload(verify(accessToken, appConfig.auth.accessSecretKey));
       next();
     } catch (error) {
       if (error instanceof UnauthorizedError) return next(error);
@@ -62,6 +64,7 @@ export class AuthMiddleware {
       // Attach user to request object for future use
       authenticatedRequest.user = user;
       authenticatedRequest.serialNumber = user.nif;
+      updateRequestContext({ userId });
 
       next();
     } catch (error) {

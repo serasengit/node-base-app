@@ -36,7 +36,7 @@ export default class RoleSchema extends Model {
     required: ['code'],
     properties: {
       id: { type: 'integer' },
-      code: { type: 'string', minLength: 1 },
+      code: { type: 'string', minLength: 1, maxLength: 100 },
       createdAt: { type: ['string', 'null'], format: 'date-time' },
       updatedAt: { type: ['string', 'null'], format: 'date-time' }
     }

@@ -3,9 +3,7 @@ import StatusCode from 'status-code-enum';
 import { BaseError, ErrorContext } from './base-error';
 
 /**
- * @summary NotFoundError
- * @description NotFoundError error class
- *
+ * NotFoundError error class
  */
 export class NotFoundError extends BaseError {
   constructor(code: APICode, context?: ErrorContext) {

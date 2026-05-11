@@ -1,5 +1,5 @@
-import { authSchema } from '@features/auth/routes/auth-route-schema';
 import { findResourceSchema, paginationSchema } from '@core/routes/common-route-schema';
+import { authSchema } from '@features/auth/routes/auth-route-schema';
 import { cityPaginationColumns, cityRelationSchema, citySchema, findCitiesSchema } from '@features/cities/routes/city-route-schema';
 import {
   findMeteoStationsSchema,
@@ -176,7 +176,11 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
     tags: [
       {
         name: 'Auth',
-        description: 'Authentication endpoints for login and token refresh.'
+        description: 'Authentication endpoints for login, token refresh and logout.'
+      },
+      {
+        name: 'Users',
+        description: 'CRUD endpoints for users and RBAC-related user lookups.'
       },
       {
         name: 'Cities',
@@ -185,10 +189,6 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
       {
         name: 'Meteo Stations',
         description: 'CRUD endpoints for meteo stations.'
-      },
-      {
-        name: 'Users',
-        description: 'CRUD endpoints for users and RBAC-related user lookups.'
       }
     ],
     components: {
@@ -389,6 +389,19 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
             responses: {
               200: response('Access token refreshed.', '#/components/schemas/RefreshTokenResponse'),
               401: response('Refresh token is missing, invalid or expired.', '#/components/schemas/ApiError')
+            }
+          },
+          false,
+          'Auth'
+        )
+      },
+      '/auth/logout': {
+        post: operation(
+          'Logout user',
+          {
+            description: 'Clears the refresh token cookie from the current browser session.',
+            responses: {
+              200: { description: 'Logout succeeded and the refresh token cookie was cleared.' }
             }
           },
           false,

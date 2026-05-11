@@ -1,6 +1,6 @@
-# SKILL: Manage Endpoints
+# SKILL: Manage Endpoints 🧠
 
-## When To Use
+## 🚦 When To Use
 
 Use this workflow when you need to add, modify or debug an API endpoint in this repository.
 
@@ -13,7 +13,7 @@ Typical cases:
 - update Swagger/OpenAPI docs
 - add endpoint integration tests
 
-## Recommended Reference Features
+## 🧭 Recommended Reference Features
 
 Use these folders as the primary examples:
 
@@ -21,7 +21,7 @@ Use these folders as the primary examples:
 - `app/features/meteo-stations`
 - `app/features/users`
 
-## Workflow
+## 🔄 Workflow
 
 1. Identify the target feature and whether it already exists
 2. Define request validation in `routes/*-route-schema.ts`
@@ -34,9 +34,9 @@ Use these folders as the primary examples:
 9. Update `app/docs/openapi.ts`
 10. Update `README.md` if the public behavior changed
 
-## File-Level Checklist
+## ✅ File-Level Checklist
 
-### Route Schema
+### 🧾 Route Schema
 
 Update:
 
@@ -52,7 +52,7 @@ Patterns to reuse:
 - `paginationSchema(...)`
 - feature-specific `find*Schema()`
 
-### Route
+### 🛣️ Route
 
 Define:
 
@@ -70,7 +70,7 @@ Grant mapping:
 - `PUT`: `GrantType.CanEdit`
 - `DELETE`: `GrantType.CanDelete`
 
-### Controller
+### 🎮 Controller
 
 Controller responsibilities:
 
@@ -85,7 +85,7 @@ Writable endpoints should read:
 
 - `(req as AuthenticatedRequest).auth?.userId`
 
-### Service
+### ⚙️ Service
 
 Service responsibilities:
 
@@ -102,7 +102,7 @@ For create/update flows with audit support:
 - set `createdById` on create
 - set `updatedById` on create/update
 
-### Repository
+### 🗄️ Repository
 
 Repository responsibilities:
 
@@ -117,7 +117,7 @@ For list endpoints, prefer helper methods:
 - `applyFilters`
 - `applyOrder`
 
-## Auth And RBAC
+## 🔐 Auth And RBAC
 
 Protected features are mounted in:
 
@@ -135,7 +135,7 @@ Module codes currently available:
 - `cities`
 - `meteo_stations`
 
-## Testing Checklist
+## 🧪 Testing Checklist
 
 For a CRUD endpoint, add coverage for:
 
@@ -158,7 +158,7 @@ Test helpers and conventions:
 - verify DB persistence directly
 - clean inserted data in `afterEach`
 
-## Swagger Checklist
+## 📘 Swagger Checklist
 
 If the endpoint is public or consumer-facing, update `app/docs/openapi.ts`:
 
@@ -171,7 +171,7 @@ If the endpoint is public or consumer-facing, update `app/docs/openapi.ts`:
 - conflict/not-found/auth responses
 - examples
 
-## Common Pitfalls
+## ⚠️ Common Pitfalls
 
 - forgetting to add the route mount to `api-routes.ts`
 - allowing `include` values in Swagger/tests but not loading them in repository
@@ -181,7 +181,7 @@ If the endpoint is public or consumer-facing, update `app/docs/openapi.ts`:
 - forgetting to update OpenAPI after adding a route
 - changing env/test helpers without updating README
 
-## Quick Endpoint Template
+## 🧱 Quick Endpoint Template
 
 For a new CRUD resource:
 

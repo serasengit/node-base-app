@@ -505,6 +505,7 @@ Implemented pieces:
 4. The API stores the refresh token in an HTTP-only cookie named `refreshToken`.
 5. Protected routes expect `Authorization: Bearer <accessToken>`.
 6. `POST /api/v1/auth/refresh-token` rotates the refresh token cookie and returns a new access token.
+7. `POST /api/v1/auth/logout` clears the refresh token cookie and ends the browser session.
 
 ### Access token payload
 
@@ -563,6 +564,7 @@ Current route groups exposed by the API:
 
 - `POST /api/v1/auth`
 - `POST /api/v1/auth/refresh-token`
+- `POST /api/v1/auth/logout`
 - `GET|POST|PUT|DELETE /api/v1/users`
 - `GET|POST|PUT|DELETE /api/v1/cities`
 - `GET|POST|PUT|DELETE /api/v1/meteo-stations`

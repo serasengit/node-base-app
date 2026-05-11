@@ -2,6 +2,7 @@ import { APICode } from '@api-messages/api-messages';
 import { ConflictError } from '@api-messages/errors/conflict-error';
 import { ForbiddenError } from '@api-messages/errors/forbidden-error';
 import { NotFoundError } from '@api-messages/errors/not-found-error';
+import { appConfig } from '@bootstrap/config';
 import { QueryParams, QueryResponse } from '@core/repositories/base-repository';
 import RoleService from '@features/roles/services/role-service';
 import logger from '@logger/logger';
@@ -19,18 +20,18 @@ class UserService {
   @Inject('userRepository') private readonly userRepository: UserRepository;
 
   /**
-   * @summary Retrieves users based on provided query parameters.
+   * Retrieves users based on provided query parameters.
    */
   public async find(params: QueryParams): Promise<QueryResponse<UserDTO>> {
     // Retrieve user records from the repository
     const { total, records }: QueryResponse<UserSchema> = await this.userRepository.find(params);
 
     // Convert the user records to DTOs and return the response
-    return { total, records: records.map(UserSchema.toDTO) };
+    return { total, records: records.map((userSchema) => UserSchema.toDTO(userSchema)) };
   }
 
   /**
-   * @summary Retrieves a user by its ID.
+   * Retrieves a user by its ID.
    */
   public async findById(id: number, params: QueryParams = {}): Promise<UserDTO> {
     const userSchema = await this.userRepository.findById(id, params);
@@ -39,16 +40,16 @@ class UserService {
   }
 
   /**
-   * @summary Retrieves a user by its username.
+   * Retrieves a user by its username.
    */
   public async findByUsername(username: string, params?: QueryParams): Promise<UserDTO> {
     const userSchema = await this.userRepository.findByUsername(username, params);
     if (!userSchema) throw new NotFoundError(APICode.UserNotFound);
-    return UserSchema.toDTO(userSchema);
+    return UserSchema.toDTO(userSchema, { includePassword: true });
   }
 
   /**
-   * @summary Creates a new user.
+   * Creates a new user.
    */
   public async create(user: UserDTO, authenticatedUserId: number): Promise<UserDTO> {
     const trx = await transaction.start(UserSchema.knex());
@@ -64,7 +65,7 @@ class UserService {
 
       // Hash the password before saving the user
       if (userSchema.password) {
-        userSchema.password = await hash(userSchema.password, 10);
+        userSchema.password = await hash(userSchema.password, appConfig.auth.bcryptSaltRounds);
       }
 
       // Ensure user does not already exist
@@ -91,7 +92,7 @@ class UserService {
   }
 
   /**
-   * @summary Updates an existing user.
+   * Updates an existing user.
    */
   public async update(user: UserDTO, authenticatedUserId: number): Promise<UserDTO> {
     const trx = await transaction.start(UserSchema.knex());
@@ -117,7 +118,7 @@ class UserService {
 
       // Hash the password before updating the user when it is provided
       if (userSchema.password) {
-        userSchema.password = await hash(userSchema.password, 10);
+        userSchema.password = await hash(userSchema.password, appConfig.auth.bcryptSaltRounds);
       }
 
       // Ensure unique user fields do not already exist for another record
@@ -143,7 +144,7 @@ class UserService {
     }
   }
   /**
-   * @summary Deletes a user by its ID.
+   * Deletes a user by its ID.
    */
   public async delete(id: number, authenticatedUserId: number): Promise<void> {
     const trx = await transaction.start(UserSchema.knex());
@@ -172,14 +173,14 @@ class UserService {
   }
 
   /**
-   * @summary Checks whether any unique user field already exists for another record.
+   * Checks whether any unique user field already exists for another record.
    */
   private hasUniqueConflict(exists: Record<string, boolean>): boolean {
     return Object.entries(exists).some(([field, existsField]) => field !== 'id' && existsField);
   }
 
   /**
-   * @summary Builds a readable user identity for conflict details.
+   * Builds a readable user identity for conflict details.
    */
   private userIdentity(user: UserDTO): string {
     return [user.username, user.email, user.nif].filter(Boolean).join(', ');
