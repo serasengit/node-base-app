@@ -1,4 +1,5 @@
 import { MeteoStationDTO } from '@features/meteo-stations/dtos/meteo-station-dto';
+import UserSchema from '@features/users/schemas/user-schema';
 import { JSONSchema, Model, RelationMappings } from 'objection';
 import CitySchema from '../../cities/schemas/city-schema';
 
@@ -11,12 +12,15 @@ export default class MeteoStationSchema extends Model {
   longitude!: number;
   latitude!: number;
   cityId!: number;
+  createdById?: number;
+  updatedById?: number;
   createdAt!: Date;
   updatedAt!: Date;
 
   // Relations
   city?: CitySchema;
-
+  createdBy?: UserSchema;
+  updatedBy?: UserSchema;
   /**
    * Updates the modification timestamp before updating the record.
    */
@@ -58,7 +62,8 @@ export default class MeteoStationSchema extends Model {
       cityId: {
         type: 'integer'
       },
-
+      createdById: { type: ['integer', 'null'] },
+      updatedById: { type: ['integer', 'null'] },
       createdAt: {
         type: 'string',
         format: 'date-time'
@@ -85,6 +90,22 @@ export default class MeteoStationSchema extends Model {
           from: 'meteo_stations.cityId',
           to: 'cities.id'
         }
+      },
+      createdBy: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: UserSchema,
+        join: {
+          from: 'meteo_stations.createdById',
+          to: 'users.id'
+        }
+      },
+      updatedBy: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: UserSchema,
+        join: {
+          from: 'meteo_stations.updatedById',
+          to: 'users.id'
+        }
       }
     };
   }
@@ -97,14 +118,23 @@ export default class MeteoStationSchema extends Model {
       id: meteoStationSchema.id,
       name: meteoStationSchema.name,
       longitude: meteoStationSchema.longitude,
-      latitude: meteoStationSchema.latitude
+      latitude: meteoStationSchema.latitude,
+      createdById: meteoStationSchema.createdById,
+      updatedById: meteoStationSchema.updatedById,
+      createdAt: meteoStationSchema.createdAt,
+      updatedAt: meteoStationSchema.updatedAt
     };
 
     // Include related city only when the relation has been loaded.
     if (meteoStationSchema.city) {
       meteoStation.city = CitySchema.toDTO(meteoStationSchema.city);
     }
-
+    if (meteoStationSchema.createdBy) {
+      meteoStation.createdBy = UserSchema.toDTO(meteoStationSchema.createdBy);
+    }
+    if (meteoStationSchema.updatedBy) {
+      meteoStation.updatedBy = UserSchema.toDTO(meteoStationSchema.updatedBy);
+    }
     return meteoStation;
   }
 }

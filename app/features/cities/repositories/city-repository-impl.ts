@@ -145,7 +145,6 @@ export class CityRepositoryImpl implements CityRepository {
     // Build the base query.
     // The meteoStations relation is joined to allow text search by station name.
     const qb = CitySchema.query().distinct('cities.id').select('cities.*');
-    qb.leftJoinRelated('[meteoStations]');
 
     this.applyRelations(qb, relations);
     this.applyFilters(qb, filters);
@@ -173,6 +172,14 @@ export class CityRepositoryImpl implements CityRepository {
     if (relations.include.includes('meteoStations')) {
       qb.withGraphFetched('meteoStations');
     }
+
+    if (relations.include.includes('createdBy')) {
+      qb.withGraphFetched('createdBy');
+    }
+
+    if (relations.include.includes('updatedBy')) {
+      qb.withGraphFetched('updatedBy');
+    }
   }
 
   /**
@@ -192,7 +199,7 @@ export class CityRepositoryImpl implements CityRepository {
         // Search by country.
         .orWhere('cities.country', 'ilike', search)
         // Search by related meteo station name.
-        .orWhere('meteoStations.name', 'ilike', search);
+        .orWhereExists(CitySchema.relatedQuery('meteoStations').where('meteoStations.name', 'ilike', search));
     });
   }
 

@@ -1,5 +1,6 @@
 import { BaseController } from '@core/controllers/base-controller';
 import { QueryParams, QueryRelations, QueryResponse } from '@core/repositories/base-repository';
+import { AuthenticatedRequest } from '@core/types/authenticated-request';
 import { CityDTO } from '@features/cities/dtos/city-dto';
 import CityService from '@features/cities/services/city-service';
 import express from 'express';
@@ -46,7 +47,9 @@ class CityController extends BaseController {
    * @summary Create city
    */
   async create(req: express.Request, res: express.Response): Promise<express.Response<CityDTO>> {
-    const city = await this.cityService.create(req.body);
+    const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
+
+    const city = await this.cityService.create(req.body, authenticatedUserId);
     return res.status(StatusCode.SuccessCreated).send(city);
   }
 
@@ -54,10 +57,15 @@ class CityController extends BaseController {
    * @summary Update city
    */
   async update(req: express.Request, res: express.Response): Promise<express.Response<CityDTO>> {
-    const city = await this.cityService.update({
-      ...req.body,
-      id: this.parseNumber(req.params.id)
-    });
+    const authenticatedUserId = (req as AuthenticatedRequest).auth?.userId;
+
+    const city = await this.cityService.update(
+      {
+        ...req.body,
+        id: this.parseNumber(req.params.id)
+      },
+      authenticatedUserId
+    );
 
     return res.status(StatusCode.SuccessOK).send(city);
   }

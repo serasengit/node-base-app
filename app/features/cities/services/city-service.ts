@@ -11,7 +11,7 @@ import { Inject, Service } from 'typedi';
 
 @Service()
 class CityService {
-  constructor(@Inject('cityRepository') private readonly cityRepository: CityRepository) {}
+  @Inject('cityRepository') private readonly cityRepository: CityRepository;
 
   /**
    * @summary Retrieves cities based on provided query parameters.
@@ -36,12 +36,14 @@ class CityService {
   /**
    * @summary Creates a new city.
    */
-  public async create(city: CityDTO): Promise<CityDTO> {
+  public async create(city: CityDTO, authenticatedUserId: number): Promise<CityDTO> {
     const trx = await transaction.start(CitySchema.knex());
 
     try {
       // Convert the city DTO to a city schema
       const citySchema = CityDTO.toSchema(city);
+      citySchema.createdById = authenticatedUserId;
+      citySchema.updatedById = authenticatedUserId;
 
       // Ensure city does not already exist using its unique composite key
       const exists = await this.cityRepository.exists(citySchema, trx);
@@ -70,12 +72,13 @@ class CityService {
   /**
    * @summary Updates an existing city.
    */
-  public async update(city: CityDTO): Promise<CityDTO> {
+  public async update(city: CityDTO, authenticatedUserId: number): Promise<CityDTO> {
     const trx = await transaction.start(CitySchema.knex());
 
     try {
       // Convert the city DTO to a city schema
       const citySchema = CityDTO.toSchema(city);
+      citySchema.updatedById = authenticatedUserId;
       const exists = await this.cityRepository.exists(citySchema, trx);
 
       // Ensure city exists

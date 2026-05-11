@@ -11,7 +11,7 @@ export const knexConfig: Knex.Config = {
     host: process.env.IS_DOCKER ? `${process.env.DOCKER_CONTAINER_NAME}-postgres` : process.env.POSTGRES_HOST,
     timezone: 'UTC'
   },
-  searchPath: ['public', 'master'],
+  searchPath: ['public', 'master', 'rbac'],
   migrations: {
     directory: `db/${process.env.NODE_ENV}/migrations`
   },

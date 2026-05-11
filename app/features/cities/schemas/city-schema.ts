@@ -1,4 +1,5 @@
 import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-schema';
+import UserSchema from '@features/users/schemas/user-schema';
 import { JSONSchema, Model, RelationMappings } from 'objection';
 import { CityDTO } from '../dtos/city-dto';
 
@@ -10,11 +11,15 @@ export default class CitySchema extends Model {
   name!: string;
   province?: string;
   country!: string;
+  createdById?: number;
+  updatedById?: number;
   createdAt!: Date;
   updatedAt!: Date;
 
   // Relations
   meteoStations?: MeteoStationSchema[];
+  createdBy?: UserSchema;
+  updatedBy?: UserSchema;
 
   static readonly tableName = 'cities';
 
@@ -52,6 +57,8 @@ export default class CitySchema extends Model {
         minLength: 1,
         maxLength: 100
       },
+      createdById: { type: ['integer', 'null'] },
+      updatedById: { type: ['integer', 'null'] },
 
       createdAt: {
         type: 'string',
@@ -79,6 +86,22 @@ export default class CitySchema extends Model {
           from: 'cities.id',
           to: 'meteo_stations.cityId'
         }
+      },
+      createdBy: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: UserSchema,
+        join: {
+          from: 'cities.createdById',
+          to: 'users.id'
+        }
+      },
+      updatedBy: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: UserSchema,
+        join: {
+          from: 'cities.updatedById',
+          to: 'users.id'
+        }
       }
     };
   }
@@ -92,6 +115,8 @@ export default class CitySchema extends Model {
       name: citySchema.name,
       province: citySchema.province,
       country: citySchema.country,
+      createdById: citySchema.createdById,
+      updatedById: citySchema.updatedById,
       createdAt: citySchema.createdAt,
       updatedAt: citySchema.updatedAt
     };
@@ -99,6 +124,12 @@ export default class CitySchema extends Model {
     // Include related meteo stations only when the relation has been loaded.
     if (citySchema.meteoStations) {
       city.meteoStations = citySchema.meteoStations.map((meteoStation) => MeteoStationSchema.toDTO(meteoStation));
+    }
+    if (citySchema.createdBy) {
+      city.createdBy = UserSchema.toDTO(citySchema.createdBy);
+    }
+    if (citySchema.updatedBy) {
+      city.updatedBy = UserSchema.toDTO(citySchema.updatedBy);
     }
 
     return city;

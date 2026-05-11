@@ -11,6 +11,8 @@ It provides a clean base architecture for building REST APIs with feature-based 
 - Data access: Knex + Objection.js
 - Database: PostgreSQL
 - Dependency injection: TypeDI
+- Authentication: JWT access token + HTTP-only refresh token
+- Authorization: RBAC with roles, grants and modules
 - Validation: express-validator
 - API documentation: Swagger / OpenAPI
 - Logging: Winston
@@ -35,8 +37,13 @@ The project follows a `core + features` organization:
 - `app/core/routes/schemas/`: shared route validation schemas
 - `app/docs/`: OpenAPI generation and route introspection
 - `app/features/`: business modules grouped by domain
+- `app/features/auth/`: authentication endpoints, token refresh and JWT handling
 - `app/features/cities/`: example feature module for cities
+- `app/features/grants/`: RBAC grant DTOs and database schemas
 - `app/features/meteo-stations/`: example feature module for meteo stations
+- `app/features/modules/`: RBAC module DTOs and database schemas
+- `app/features/roles/`: RBAC role DTOs and database schemas
+- `app/features/users/`: user CRUD, RBAC-aware validation, repositories, schemas and services
 - `app/logger/`: Winston logger setup
 - `app/middlewares/`: Express middlewares
 - `db/dev/migrations/`: development database migrations
@@ -58,6 +65,12 @@ app/
       schemas/
   docs/
   features/
+    auth/
+      controllers/
+      dtos/
+      routes/
+      services/
+      tests/
     cities/
       controllers/
       dtos/
@@ -67,6 +80,23 @@ app/
       services/
       tests/
     meteo-stations/
+      controllers/
+      dtos/
+      repositories/
+      routes/
+      schemas/
+      services/
+      tests/
+    grants/
+      dtos/
+      schemas/
+    modules/
+      dtos/
+      schemas/
+    roles/
+      dtos/
+      schemas/
+    users/
       controllers/
       dtos/
       repositories/
@@ -192,6 +222,32 @@ environments/.env.dev
   PostgreSQL user password.  
   Development value: `postgres`.
 
+#### 🔐 Authentication and security
+
+- `BCRYPT_SALT_ROUNDS`  
+  Cost factor used when hashing user passwords.  
+  Development value: `12`.
+
+- `JWT_ACCESS_SECRET_KEY`  
+  Secret used to sign short-lived access tokens.  
+  Development value: `node_base_app_access_key`.
+
+- `JWT_REFRESH_SECRET_KEY`  
+  Secret used to sign refresh tokens stored in cookies.  
+  Development value: `node_base_app_refresh_key`.
+
+- `JWT_ACCESS_EXPIRATION_TIME`  
+  Access token expiration window.  
+  Development value: `15m`.
+
+- `JWT_REFRESH_EXPIRATION_TIME`  
+  Refresh token expiration window.  
+  Development value: `7d`.
+
+- `JWT_MAX_INACTIVE_TIME`  
+  Maximum inactivity window, in milliseconds, used when rotating refresh tokens.  
+  Development value: `1800000`.
+
 #### 🐳 Docker
 
 - `DOCKER_IMAGE_NAME`  
@@ -245,6 +301,16 @@ POSTGRES_PORT=5432
 POSTGRES_DB=node_base_app_test
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
+
+# Bcrypt salt rounds for password hashing
+BCRYPT_SALT_ROUNDS=12
+
+# JWT secrets and expiration configuration
+JWT_ACCESS_SECRET_KEY=node_base_app_access_key
+JWT_REFRESH_SECRET_KEY=node_base_app_refresh_key
+JWT_ACCESS_EXPIRATION_TIME=15m
+JWT_REFRESH_EXPIRATION_TIME=7d
+JWT_MAX_INACTIVE_TIME=1800000
 
 # Docker image and container names
 DOCKER_IMAGE_NAME=node-base-app-test
@@ -300,6 +366,16 @@ POSTGRES_DB=node_base_app_dev
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 
+# Bcrypt salt rounds for password hashing
+BCRYPT_SALT_ROUNDS=12
+
+# JWT secrets and expiration configuration
+JWT_ACCESS_SECRET_KEY=node_base_app_access_key
+JWT_REFRESH_SECRET_KEY=node_base_app_refresh_key
+JWT_ACCESS_EXPIRATION_TIME=15m
+JWT_REFRESH_EXPIRATION_TIME=7d
+JWT_MAX_INACTIVE_TIME=1800000
+
 # Docker image and container names
 DOCKER_IMAGE_NAME=node-base-app
 DOCKER_CONTAINER_NAME=node-base-app
@@ -336,6 +412,13 @@ Run database seeds:
 
 ```bash
 npm run knex:seed:run --env=dev
+```
+
+Default seeded development users:
+
+```text
+system_admin / Admin123!
+readonly / Readonly123!
 ```
 
 Start the backend:
@@ -387,6 +470,114 @@ Notes:
 - Route introspection is handled under `app/docs`.
 - The documentation routes are enabled only when `ENABLE_API_DOCS=true`.
 - The final API prefix depends on the value of `SERVER_API`.
+- The manual OpenAPI specification currently documents `auth`, `users`, `cities` and `meteo-stations`.
+- Protected route groups are marked with bearer authentication in Swagger UI.
+
+## 🔐 Authentication and authorization
+
+The backend includes a JWT-based authentication flow and RBAC authorization model.
+
+Implemented pieces:
+
+- `auth` feature with login and refresh-token endpoints.
+- `users` feature support classes for identity lookup and active-user validation.
+- `roles`, `grants` and `modules` schemas/DTOs for RBAC composition.
+- security middlewares that validate the access token and load the authenticated user.
+
+### Authentication flow
+
+1. `POST /api/v1/auth` receives `username` and `password`.
+2. The service validates the credentials and user status.
+3. The API returns an access token in the response body.
+4. The API stores the refresh token in an HTTP-only cookie named `refreshToken`.
+5. Protected routes expect `Authorization: Bearer <accessToken>`.
+6. `POST /api/v1/auth/refresh-token` rotates the refresh token cookie and returns a new access token.
+
+### Access token payload
+
+The access token stores only the minimum claims required by the API:
+
+- `userId`
+- `roleCode`
+- `language`
+
+The refresh token stores:
+
+- `userId`
+- `type=refresh`
+
+### Authentication responses
+
+Successful login returns:
+
+- `accessToken`
+- `isAuthenticated`
+- `user`
+- `permissions`
+
+The `user` payload is intentionally reduced to safe UI-facing data such as `id`, `username`, `name`, `language` and `role`. Sensitive fields such as password hashes are never returned.
+
+### RBAC model
+
+The RBAC seed and schema model are organized as:
+
+- `modules`: application areas such as `users`, `cities` or `meteo_stations`
+- `grants`: CRUD-like capabilities bound to a module
+- `roles`: named permission sets such as `system_administrator` and `read_only`
+- `role_grants`: join table between roles and grants
+- `users`: authenticated identities linked to one role
+
+### Audit fields
+
+The `users`, `cities` and `meteo_stations` tables support audit ownership fields:
+
+- `created_by_id`
+- `updated_by_id`
+
+For create and update operations, these values are populated from the authenticated access token user.
+
+### Protected routes
+
+Routes mounted with the auth middleware:
+
+- validate the bearer token signature and expiration
+- verify that the authenticated user still exists and is active
+- attach the authenticated user to the request lifecycle
+
+### Implemented API modules
+
+Current route groups exposed by the API:
+
+- `POST /api/v1/auth`
+- `POST /api/v1/auth/refresh-token`
+- `GET|POST|PUT|DELETE /api/v1/users`
+- `GET|POST|PUT|DELETE /api/v1/cities`
+- `GET|POST|PUT|DELETE /api/v1/meteo-stations`
+
+Supported relation includes:
+
+- `cities`: `meteoStations`, `createdBy`, `updatedBy`
+- `meteo-stations`: `city`, `createdBy`, `updatedBy`
+- `users`: `role`, `roleGrants`, `roleGrantsModule`, `createdBy`, `updatedBy`
+
+### RBAC and seed layout
+
+The migrations and seeds are organized in two groups:
+
+- `rbac`: modules, roles, grants, role grants and users
+- `public`: cities and meteo stations
+
+Development and test environments both seed:
+
+- modules for `users`, `cities` and `meteo_stations`
+- roles `system_administrator` and `read_only`
+- role grants for admin and read-only access patterns
+- users `system_admin` and `readonly`
+
+Default seeded users that can authenticate the application:
+
+- `system_admin / Admin123!`
+- `readonly / Readonly123!`
 
 ## 📦 Available scripts
 
@@ -724,6 +915,12 @@ DOCKER_CONTAINER_NAME
 LOG_LEVEL
 LOGS_FOLDER
 ENABLE_API_DOCS
+BCRYPT_SALT_ROUNDS
+JWT_ACCESS_SECRET_KEY
+JWT_REFRESH_SECRET_KEY
+JWT_ACCESS_EXPIRATION_TIME
+JWT_REFRESH_EXPIRATION_TIME
+JWT_MAX_INACTIVE_TIME
 ```
 
 Sensitive, infrastructure-specific or corporate variables should be configured in GitLab, not committed to the repository.
@@ -789,8 +986,13 @@ git commit -m "ci: use official SonarScanner image"
 
 The skeleton includes example modules that can be reused as references when creating new features:
 
+- `auth`
 - `cities`
+- `grants`
 - `meteo-stations`
+- `modules`
+- `roles`
+- `users`
 
 Each feature follows the same internal structure:
 

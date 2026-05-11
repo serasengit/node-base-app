@@ -120,7 +120,6 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
     // Build the base query.
     // The city relation is joined to allow text search by creator name.
     const qb = MeteoStationSchema.query().distinct('meteoStations.id').select('meteoStations.*');
-    qb.leftJoinRelated('[city]');
 
     this.applyRelations(qb, relations);
     this.applyFilters(qb, filters);
@@ -150,6 +149,14 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
     if (relations.include.includes('city')) {
       qb.withGraphFetched('city');
     }
+
+    if (relations.include.includes('createdBy')) {
+      qb.withGraphFetched('createdBy');
+    }
+
+    if (relations.include.includes('updatedBy')) {
+      qb.withGraphFetched('updatedBy');
+    }
   }
 
   /**
@@ -163,20 +170,26 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
     qb.where((builder: QueryBuilder<MeteoStationSchema>) => {
       builder
         // Search by station name.
-        .where('meteoStations.name', 'ilike', search)
+        .where('meteo_stations.name', 'ilike', search)
 
         // Latitude and longitude are numeric fields, so they must be cast to text before using ILIKE.
         .orWhereRaw('CAST(meteo_stations.latitude AS TEXT) ILIKE ?', [search])
         .orWhereRaw('CAST(meteo_stations.longitude AS TEXT) ILIKE ?', [search])
 
-        // Search by city name.
-        .orWhere('city.name', 'ilike', search)
+        // Search by related city fields.
+        .orWhereExists(
+          MeteoStationSchema.relatedQuery('city').where((cityBuilder) => {
+            cityBuilder
+              // Search by city name.
+              .where('city.name', 'ilike', search)
 
-        // Search by country name.
-        .orWhere('city.country', 'ilike', search)
+              // Search by country name.
+              .orWhere('city.country', 'ilike', search)
 
-        // Search by province name.
-        .orWhere('city.province', 'ilike', search);
+              // Search by province name.
+              .orWhere('city.province', 'ilike', search);
+          })
+        );
     });
   }
 

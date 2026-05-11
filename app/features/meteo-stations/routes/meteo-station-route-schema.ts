@@ -60,7 +60,7 @@ export const meteoStationRelationSchema = (): Schema<DefaultSchemaKeys> => ({
     // Validate that only supported relations can be requested.
     custom: {
       options: (value: string[]): boolean => {
-        const allowedRelations = new Set(['city']);
+        const allowedRelations = new Set(['city', 'createdBy', 'updatedBy']);
 
         return value.every((relation) => allowedRelations.has(relation));
       },

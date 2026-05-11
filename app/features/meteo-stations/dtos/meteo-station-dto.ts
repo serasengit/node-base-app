@@ -1,16 +1,20 @@
 import { CityDTO } from '@features/cities/dtos/city-dto';
 import MeteoStationSchema from '@features/meteo-stations/schemas/meteo-station-schema';
+import { UserDTO } from '@features/users/dtos/user-dto';
 
 export class MeteoStationDTO {
   id: number;
   name: string;
   longitude: number;
   latitude: number;
+  createdById?: number;
+  updatedById?: number;
   createdAt?: Date;
   updatedAt?: Date;
   // Relations
   city?: CityDTO;
-
+  createdBy?: UserDTO;
+  updatedBy?: UserDTO;
   /**
    * Maps a MeteoStationDTO into its persistence schema representation.
    */
@@ -21,6 +25,8 @@ export class MeteoStationDTO {
     meteoStationSchema.name = meteoStation.name;
     meteoStationSchema.longitude = meteoStation.longitude;
     meteoStationSchema.latitude = meteoStation.latitude;
+    meteoStationSchema.createdById = meteoStation.createdById;
+    meteoStationSchema.updatedById = meteoStation.updatedById;
     meteoStationSchema.createdAt = meteoStation.createdAt;
     meteoStationSchema.updatedAt = meteoStation.updatedAt;
 

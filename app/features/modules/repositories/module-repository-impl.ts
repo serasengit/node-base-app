@@ -1,0 +1,10 @@
+import { Service } from 'typedi';
+import ModuleSchema, { ModuleCode } from '../schemas/module-schema';
+import { ModuleRepository } from './module-repository';
+
+@Service('moduleRepository')
+export class ModuleRepositoryImpl implements ModuleRepository {
+  public async findActiveByCode(code: ModuleCode): Promise<ModuleSchema | undefined> {
+    return await ModuleSchema.query().where('code', code).andWhere('isActive', true).first();
+  }
+}

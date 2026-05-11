@@ -11,7 +11,7 @@ import { Inject, Service } from 'typedi';
 
 @Service()
 class MeteoStationService {
-  constructor(@Inject('meteoStationRepository') private readonly meteoStationRepository: MeteoStationRepository) {}
+  @Inject('meteoStationRepository') private readonly meteoStationRepository: MeteoStationRepository;
 
   /**
    * @summary Retrieves meteo stations based on provided query parameters.
@@ -36,12 +36,14 @@ class MeteoStationService {
   /**
    * @summary Creates a new meteo station.
    */
-  public async create(meteoStation: MeteoStationDTO): Promise<MeteoStationDTO> {
+  public async create(meteoStation: MeteoStationDTO, authenticatedUserId: number): Promise<MeteoStationDTO> {
     const trx = await transaction.start(MeteoStationSchema.knex());
 
     try {
       // Convert the master table DTO to a master table schema
       const meteoStationSchema = MeteoStationDTO.toSchema(meteoStation);
+      meteoStationSchema.createdById = authenticatedUserId;
+      meteoStationSchema.updatedById = authenticatedUserId;
 
       // Ensure meteo does not already exist
       const exists = await this.meteoStationRepository.exists(meteoStationSchema, trx);
@@ -67,12 +69,13 @@ class MeteoStationService {
   /**
    * @summary Updates a new meteo station.
    */
-  public async update(meteoStation: MeteoStationDTO): Promise<MeteoStationDTO> {
+  public async update(meteoStation: MeteoStationDTO, authenticatedUserId: number): Promise<MeteoStationDTO> {
     const trx = await transaction.start(MeteoStationSchema.knex());
 
     try {
       // Convert the master table DTO to a master table schema
       const meteoStationSchema = MeteoStationDTO.toSchema(meteoStation);
+      meteoStationSchema.updatedById = authenticatedUserId;
 
       // Ensure meteo station exists
       const exists = await this.meteoStationRepository.exists(meteoStationSchema, trx);

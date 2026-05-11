@@ -2,9 +2,10 @@ import { APICode } from '@api-messages/api-messages';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { knex, Knex } from 'knex';
-import { after, afterEach, describe, it } from 'mocha';
+import { after, afterEach, before, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import app from '../../../../server';
+import { loginAsSystemAdmin, withBearerToken } from '../../../test-setup/auth-test-helper';
 
 chai.use(chaiHttp);
 
@@ -22,12 +23,20 @@ const db: Knex = knex({
 
 const API_ENDPOINT = `/${process.env.SERVER_API}/cities`;
 const TEST_PREFIX = 'TEST_CITY_';
+let accessToken = '';
 
 type CityRecord = {
   id: number;
   name: string;
   province: string | null;
   country: string;
+  created_by_id?: number | null;
+  updated_by_id?: number | null;
+};
+
+type UserRecord = {
+  id: number;
+  username: string;
 };
 
 function uniqueCityName(suffix: string): string {
@@ -44,12 +53,24 @@ async function getSeededCity(): Promise<CityRecord> {
   return city;
 }
 
+async function getSystemAdminUser(): Promise<UserRecord> {
+  const user = await db<UserRecord>('rbac.users').where({ username: 'system_admin' }).first();
+
+  if (!user) {
+    throw new Error('Expected seeded system administrator in test database.');
+  }
+
+  return user;
+}
+
 async function insertTestCity(overrides: Partial<CityRecord> = {}): Promise<CityRecord> {
   const [city] = await db<CityRecord>('cities')
     .insert({
       name: overrides.name ?? uniqueCityName('INSERTED'),
       province: overrides.province ?? 'Madrid',
-      country: overrides.country ?? 'Spain'
+      country: overrides.country ?? 'Spain',
+      created_by_id: overrides.created_by_id ?? null,
+      updated_by_id: overrides.updated_by_id ?? null
     })
     .returning('*');
 
@@ -71,6 +92,10 @@ async function cleanupTestData(): Promise<void> {
 }
 
 describe('Cities API', function () {
+  before(async () => {
+    accessToken = await loginAsSystemAdmin();
+  });
+
   afterEach(async () => {
     await cleanupTestData();
   });
@@ -81,7 +106,7 @@ describe('Cities API', function () {
 
   describe('GET /cities', () => {
     it('should list cities', async () => {
-      const response = await chai.request(app).get(API_ENDPOINT);
+      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.have.property('total').that.is.a('number');
@@ -92,14 +117,14 @@ describe('Cities API', function () {
     it('should filter cities by textSearch', async () => {
       const city = await insertTestCity({ name: uniqueCityName('SEARCHABLE') });
 
-      const response = await chai.request(app).get(API_ENDPOINT).query({ textSearch: city.name });
+      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ textSearch: city.name });
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body.records.some((record) => record.id === city.id)).to.equal(true);
     });
 
     it('should return 422 when orderBy is invalid', async () => {
-      const response = await chai.request(app).get(API_ENDPOINT).query({ orderBy: 'invalidColumn' });
+      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
 
       expect(response).to.have.status(StatusCode.ClientErrorUnprocessableEntity);
       expect(response.body).to.have.property('code', APICode.ClientErrorUnprocessableEntity);
@@ -110,7 +135,7 @@ describe('Cities API', function () {
     it('should fetch one city by id', async () => {
       const city = await getSeededCity();
 
-      const response = await chai.request(app).get(`${API_ENDPOINT}/${city.id}`);
+      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${city.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -124,7 +149,7 @@ describe('Cities API', function () {
       const city = await insertTestCity();
       await insertTestMeteoStation(city.id);
 
-      const response = await chai.request(app).get(`${API_ENDPOINT}/${city.id}`).query({
+      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${city.id}`), accessToken).query({
         include: 'meteoStations'
       });
 
@@ -133,8 +158,32 @@ describe('Cities API', function () {
       expect(response.body.meteoStations.length).to.be.greaterThan(0);
     });
 
+    it('should include createdBy and updatedBy when requested', async () => {
+      const systemAdmin = await getSystemAdminUser();
+      const city = await insertTestCity({
+        created_by_id: systemAdmin.id,
+        updated_by_id: systemAdmin.id
+      });
+
+      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${city.id}`), accessToken).query({
+        include: 'createdBy,updatedBy'
+      });
+
+      expect(response).to.have.status(StatusCode.SuccessOK);
+      expect(response.body).to.have.property('createdBy');
+      expect(response.body.createdBy).to.include({
+        id: systemAdmin.id,
+        username: systemAdmin.username
+      });
+      expect(response.body).to.have.property('updatedBy');
+      expect(response.body.updatedBy).to.include({
+        id: systemAdmin.id,
+        username: systemAdmin.username
+      });
+    });
+
     it('should return 404 when city does not exist', async () => {
-      const response = await chai.request(app).get(`${API_ENDPOINT}/99999999`);
+      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/99999999`), accessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.CityNotFound);
@@ -143,25 +192,28 @@ describe('Cities API', function () {
 
   describe('POST /cities', () => {
     it('should create a city', async () => {
+      const systemAdmin = await getSystemAdminUser();
       const payload = {
         name: uniqueCityName('CREATED'),
         province: 'La Rioja',
         country: 'Spain'
       };
 
-      const response = await chai.request(app).post(API_ENDPOINT).send(payload);
+      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessCreated);
       expect(response.body).to.include(payload);
 
       const persisted = await db('cities').where({ name: payload.name, country: payload.country }).first();
       expect(persisted).to.not.equal(undefined);
+      expect(persisted.created_by_id).to.equal(systemAdmin.id);
+      expect(persisted.updated_by_id).to.equal(systemAdmin.id);
     });
 
     it('should return 409 when creating a duplicated city', async () => {
       const city = await insertTestCity();
 
-      const response = await chai.request(app).post(API_ENDPOINT).send({
+      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send({
         name: city.name,
         province: city.province,
         country: city.country
@@ -174,6 +226,7 @@ describe('Cities API', function () {
 
   describe('PUT /cities/:id', () => {
     it('should update a city', async () => {
+      const systemAdmin = await getSystemAdminUser();
       const city = await insertTestCity();
       const payload = {
         name: uniqueCityName('UPDATED'),
@@ -181,19 +234,20 @@ describe('Cities API', function () {
         country: 'Spain'
       };
 
-      const response = await chai.request(app).put(`${API_ENDPOINT}/${city.id}`).send(payload);
+      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${city.id}`), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
         id: city.id,
         ...payload
       });
+
+      const persisted = await db('cities').where({ id: city.id }).first();
+      expect(persisted.updated_by_id).to.equal(systemAdmin.id);
     });
 
     it('should return 404 when updating a non existing city', async () => {
-      const response = await chai
-        .request(app)
-        .put(`${API_ENDPOINT}/99999999`)
+      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken)
         .send({
           name: uniqueCityName('MISSING'),
           province: 'Madrid',
@@ -209,7 +263,7 @@ describe('Cities API', function () {
     it('should delete a city', async () => {
       const city = await insertTestCity();
 
-      const response = await chai.request(app).delete(`${API_ENDPOINT}/${city.id}`);
+      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${city.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessNoContent);
 

@@ -21,11 +21,21 @@ export enum APICode {
   RequiredToken = 'required_token',
   UnknownError = 'unknown_error',
   RequiredParameter = 'required_parameter',
+  SessionExpired = 'session_expired',
+  InvalidGrants = 'invalid_grants',
+  InvalidAccessToken = 'invalid_access_token',
+  InvalidRefreshToken = 'invalid_refresh_token',
+  TranslationNotFound = 'translation_not_found',
+  UserNotFound = 'user_not_found',
+  UserAlreadyExists = 'user_already_exists',
+  InactiveUser = 'inactive_user',
+  InvalidPassword = 'invalid_password',
+  RoleNotFound = 'role_not_found',
+  ModuleNotFound = 'module_not_found',
   CityNotFound = 'city_not_found',
   CityAlreadyExists = 'city_already_exists',
   MeteoStationNotFound = 'meteo_station_not_found',
-  MeteoStationAlreadyExists = 'meteo_station_already_exists',
-  TranslationNotFound = 'translation_not_found'
+  MeteoStationAlreadyExists = 'meteo_station_already_exists'
 }
 
 /**
