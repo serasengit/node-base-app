@@ -1,3 +1,4 @@
+# Define the pipeline execution order.
 stages:
   - dependencies # First stage: install project dependencies.
   - build # Second stage: build the TypeScript project.
@@ -24,12 +25,12 @@ dependencies:
   artifacts:
     paths:
       - node_modules/ # Make node_modules available to downstream jobs.
-    expire_in: 1 hour
+    expire_in: 1 hour # Keep dependency artifacts only for the time needed by downstream jobs.
 
   only:
-    - merge_requests
-    - develop
-    - main
+    - merge_requests # Run this job for merge request pipelines.
+    - develop # Run this job for the develop branch.
+    - main # Run this job for the main branch.
 
 # Build the TypeScript project.
 build:
@@ -38,7 +39,7 @@ build:
 
   needs:
     - job: dependencies # Reuse dependencies installed by the dependencies job.
-      artifacts: true
+      artifacts: true # Download node_modules from the dependencies job.
 
   script:
     - npm run build # Compile TypeScript into the dist directory.
@@ -46,7 +47,7 @@ build:
   artifacts:
     paths:
       - dist/ # Store the compiled application as a pipeline artifact.
-    expire_in: 1 hour
+    expire_in: 1 hour # Keep build artifacts only for the time needed by downstream jobs.
 
   cache:
     key:
@@ -57,9 +58,9 @@ build:
     policy: pull # Only restore the cache; do not update it from this job.
 
   only:
-    - merge_requests
-    - develop
-    - main
+    - merge_requests # Run this job for merge request pipelines.
+    - develop # Run this job for the develop branch.
+    - main # Run this job for the main branch.
 
 # Run tests and validate code coverage.
 test:
@@ -70,13 +71,13 @@ test:
   # The GitLab runner must be configured with privileged = true.
   services:
     - name: docker:24.0.5-dind
-      alias: docker
+      alias: docker # Expose the Docker daemon using the docker hostname.
 
   variables:
     DOCKER_HOST: tcp://docker:2375 # Docker daemon exposed by the docker:dind service.
     DOCKER_TLS_CERTDIR: '' # Disable Docker TLS inside the isolated CI network.
     COMPOSE_PROJECT_NAME: '${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_IID}-test' # Avoid collisions between concurrent pipelines.
-    NODE_ENV: test
+    NODE_ENV: test # Run the application and tests using the test environment.
 
   before_script:
     - docker version # Print Docker version for troubleshooting.
@@ -118,15 +119,15 @@ test:
     - docker compose --env-file environments/.env.test down --remove-orphans --volumes || true
 
   artifacts:
-    when: always
+    when: always # Upload coverage artifacts even if the test job fails.
     paths:
       - coverage/ # Store the coverage report as a pipeline artifact.
-    expire_in: 1 week
+    expire_in: 1 week # Keep coverage reports available for troubleshooting and SonarQube analysis.
 
   only:
-    - merge_requests
-    - develop
-    - main
+    - merge_requests # Run this job for merge request pipelines.
+    - develop # Run this job for the develop branch.
+    - main # Run this job for the main branch.
 
 # Run SonarQube static code analysis.
 sonar:
@@ -135,11 +136,11 @@ sonar:
   # Use the official SonarScanner CLI image so the sonar-scanner command is available.
   image:
     name: sonarsource/sonar-scanner-cli:latest
-    entrypoint: ['']
+    entrypoint: [''] # Override the default entrypoint so GitLab can run the script commands.
 
   needs:
     - job: test # Download artifacts from the test job, especially coverage reports.
-      artifacts: true
+      artifacts: true # Make test artifacts available to SonarScanner.
 
   allow_failure: true # Do not fail the full pipeline if SonarQube analysis fails.
 
@@ -148,27 +149,29 @@ sonar:
     GIT_DEPTH: '0' # Fetch full Git history so SonarQube can assign blame information.
 
   script:
-    - sonar-scanner # Run SonarScanner using sonar-project.properties and CI variables.
+    # Run SonarScanner using sonar-project.properties and the CI token.
+    # SONAR_TOKEN must be configured as a masked GitLab CI/CD variable.
+    - sonar-scanner -Dsonar.token="${SONAR_TOKEN}"
 
   cache:
     key: sonar-cache # Reuse SonarScanner cache between pipeline executions.
     paths:
-      - .sonar/cache
+      - .sonar/cache # Cache downloaded SonarScanner dependencies and analyzer files.
 
   only:
-    - merge_requests
-    - main
+    - merge_requests # Run this job for merge request pipelines.
+    - main # Run this job for the main branch.
 
 # Run ZAP security analysis against the containerized application.
 zap:
   stage: zap
-  image: docker:24.0.5-cli
+  image: docker:24.0.5-cli # Use Docker CLI because this job starts the application and runs ZAP in containers.
 
   # Docker-in-Docker service used to build and run the application containers.
   # The GitLab runner must be configured with privileged = true.
   services:
     - name: docker:24.0.5-dind
-      alias: docker
+      alias: docker # Expose the Docker daemon using the docker hostname.
 
   variables:
     # Docker daemon exposed by the docker:dind service.
@@ -269,16 +272,16 @@ zap:
     # Always upload reports, even if ZAP finds issues or the job fails.
     when: always
     paths:
-      - zap-reports/
-    expire_in: 1 week
+      - zap-reports/ # Store generated ZAP HTML and XML reports.
+    expire_in: 1 week # Keep ZAP reports available for review after the pipeline finishes.
 
   # Run ZAP for merge requests and the main development branches.
   only:
-    - merge_requests
-    - develop
-    - main
+    - merge_requests # Run this job for merge request pipelines.
+    - develop # Run this job for the develop branch.
+    - main # Run this job for the main branch.
 
   needs:
     # Ensure the application builds before starting the containerized ZAP scan.
     - job: build
-      artifacts: true
+      artifacts: true # Download build artifacts from the build job.
