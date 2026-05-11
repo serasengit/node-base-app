@@ -1,4 +1,5 @@
 import { APICode } from '@api-messages/api-messages';
+import { NoContentError } from '@api-messages/errors/no-content-error';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { knex, Knex } from 'knex';
@@ -108,6 +109,16 @@ describe('Meteo Stations API', function () {
 
   after(async () => {
     await db.destroy();
+  });
+
+  describe('NoContentError', () => {
+    it('should create a no content error with the expected code, status and context', () => {
+      const error = new NoContentError(APICode.NoResultsFound, { details: 'meteoStations' });
+
+      expect(error.code).to.equal(APICode.NoResultsFound);
+      expect(error.status).to.equal(StatusCode.SuccessNoContent);
+      expect(error.context).to.deep.equal({ details: 'meteoStations' });
+    });
   });
 
   describe('GET /meteo-stations', () => {

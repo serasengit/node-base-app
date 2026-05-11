@@ -1,4 +1,5 @@
 import { APICode } from '@api-messages/api-messages';
+import { BadRequestError } from '@api-messages/errors/bad-request-error';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { knex, Knex } from 'knex';
@@ -102,6 +103,16 @@ describe('Cities API', function () {
 
   after(async () => {
     await db.destroy();
+  });
+
+  describe('BadRequestError', () => {
+    it('should create a bad request error with the expected code, status and context', () => {
+      const error = new BadRequestError(APICode.InvalidParameter, { details: 'textSearch' });
+
+      expect(error.code).to.equal(APICode.InvalidParameter);
+      expect(error.status).to.equal(StatusCode.ClientErrorBadRequest);
+      expect(error.context).to.deep.equal({ details: 'textSearch' });
+    });
   });
 
   describe('GET /cities', () => {

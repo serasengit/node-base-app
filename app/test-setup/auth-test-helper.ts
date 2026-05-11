@@ -2,14 +2,16 @@ import chai from 'chai';
 import app from '../../server';
 
 const AUTH_ENDPOINT = `/${process.env.SERVER_API}/auth`;
+const TEST_SYSTEM_ADMIN_USERNAME = process.env.TEST_SYSTEM_ADMIN_USERNAME as string;
+const TEST_SYSTEM_ADMIN_PASSWORD = process.env.TEST_SYSTEM_ADMIN_PASSWORD as string;
 
 /**
  * Authenticates the seeded system administrator and returns a bearer token.
  */
 export async function loginAsSystemAdmin(): Promise<string> {
   const response = await chai.request(app).post(AUTH_ENDPOINT).send({
-    username: 'system_admin',
-    password: 'Admin123!'
+    username: TEST_SYSTEM_ADMIN_USERNAME,
+    password: TEST_SYSTEM_ADMIN_PASSWORD
   });
 
   if (!response.body?.accessToken) {

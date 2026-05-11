@@ -10,6 +10,10 @@ chai.use(chaiHttp);
 
 const AUTH_ENDPOINT = `/${process.env.SERVER_API}/auth`;
 const CITIES_ENDPOINT = `/${process.env.SERVER_API}/cities`;
+const TEST_SYSTEM_ADMIN_USERNAME = process.env.TEST_SYSTEM_ADMIN_USERNAME as string;
+const TEST_SYSTEM_ADMIN_PASSWORD = process.env.TEST_SYSTEM_ADMIN_PASSWORD as string;
+const TEST_READONLY_USERNAME = process.env.TEST_READONLY_USERNAME as string;
+const TEST_READONLY_PASSWORD = process.env.TEST_READONLY_PASSWORD as string;
 
 function uniqueCityName(suffix: string): string {
   return `AUTH_SPEC_CITY_${suffix}_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
@@ -28,8 +32,8 @@ describe('Authentication API', function () {
   describe('POST /auth', () => {
     it('should authenticate the seeded system administrator', async () => {
       const response = await chai.request(app).post(AUTH_ENDPOINT).send({
-        username: 'system_admin',
-        password: 'Admin123!'
+        username: TEST_SYSTEM_ADMIN_USERNAME,
+        password: TEST_SYSTEM_ADMIN_PASSWORD
       });
 
       expect(response).to.have.status(StatusCode.SuccessOK);
@@ -38,7 +42,7 @@ describe('Authentication API', function () {
       expect(response.body).to.have.property('permissions').that.is.an('array');
       expect(response.body).to.have.property('user');
       expect(response.body.user).to.include({
-        username: 'system_admin',
+        username: TEST_SYSTEM_ADMIN_USERNAME,
         language: 'es'
       });
       expect(response.body.user).to.not.have.property('password');
@@ -46,7 +50,7 @@ describe('Authentication API', function () {
 
     it('should reject invalid credentials', async () => {
       const response = await chai.request(app).post(AUTH_ENDPOINT).send({
-        username: 'system_admin',
+        username: TEST_SYSTEM_ADMIN_USERNAME,
         password: 'wrong-password'
       });
 
@@ -60,8 +64,8 @@ describe('Authentication API', function () {
       const agent = chai.request.agent(app);
 
       const loginResponse = await agent.post(AUTH_ENDPOINT).send({
-        username: 'system_admin',
-        password: 'Admin123!'
+        username: TEST_SYSTEM_ADMIN_USERNAME,
+        password: TEST_SYSTEM_ADMIN_PASSWORD
       });
 
       expect(loginResponse).to.have.status(StatusCode.SuccessOK);
@@ -92,7 +96,7 @@ describe('Authentication API', function () {
     });
 
     it('should allow requests with a valid access token', async () => {
-      const accessToken = await login('system_admin', 'Admin123!');
+      const accessToken = await login(TEST_SYSTEM_ADMIN_USERNAME, TEST_SYSTEM_ADMIN_PASSWORD);
       const response = await withBearerToken(chai.request(app).get(CITIES_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
@@ -100,7 +104,7 @@ describe('Authentication API', function () {
     });
 
     it('should allow read-only users to access routes with read grants', async () => {
-      const accessToken = await login('readonly', 'Readonly123!');
+      const accessToken = await login(TEST_READONLY_USERNAME, TEST_READONLY_PASSWORD);
       const response = await withBearerToken(chai.request(app).get(CITIES_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
@@ -108,7 +112,7 @@ describe('Authentication API', function () {
     });
 
     it('should reject read-only users on routes without the required grants', async () => {
-      const accessToken = await login('readonly', 'Readonly123!');
+      const accessToken = await login(TEST_READONLY_USERNAME, TEST_READONLY_PASSWORD);
       const response = await withBearerToken(chai.request(app).post(CITIES_ENDPOINT), accessToken).send({
         name: uniqueCityName('FORBIDDEN'),
         province: 'Madrid',

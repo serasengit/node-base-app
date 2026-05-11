@@ -312,6 +312,12 @@ JWT_ACCESS_EXPIRATION_TIME=15m
 JWT_REFRESH_EXPIRATION_TIME=7d
 JWT_MAX_INACTIVE_TIME=1800000
 
+# Seeded test user credentials
+TEST_SYSTEM_ADMIN_USERNAME=system_admin
+TEST_SYSTEM_ADMIN_PASSWORD=Admin123!
+TEST_READONLY_USERNAME=readonly
+TEST_READONLY_PASSWORD=Readonly123!
+
 # Docker image and container names
 DOCKER_IMAGE_NAME=node-base-app-test
 DOCKER_CONTAINER_NAME=node-base-app-test
@@ -323,6 +329,13 @@ LOGS_FOLDER=logs/test
 # Enable API documentation route (Swagger UI).
 ENABLE_API_DOCS=true
 ```
+
+Additional test-only authentication helpers:
+
+- `TEST_SYSTEM_ADMIN_USERNAME`: seeded username used by integration tests for admin authentication.
+- `TEST_SYSTEM_ADMIN_PASSWORD`: seeded password used by integration tests for admin authentication.
+- `TEST_READONLY_USERNAME`: seeded username used by integration tests for read-only authentication.
+- `TEST_READONLY_PASSWORD`: seeded password used by integration tests for read-only authentication.
 
 In GitLab CI/CD, the ZAP job loads `environments/.env.test` to dynamically build:
 
