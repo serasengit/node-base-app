@@ -1,8 +1,15 @@
 import { expect } from 'chai';
+<<<<<<< HEAD
 import { describe, it } from 'mocha';
 import { createRequire } from 'module';
 
 type EnvMap = Record<string, string>;
+=======
+import { createRequire } from 'module';
+import { describe, it } from 'mocha';
+
+type EnvMap = Record<string, string | undefined>;
+>>>>>>> 528b90bf90558f8a6abbdc0a26dc5be35a3d8070
 
 const moduleRequire = createRequire(__filename);
 

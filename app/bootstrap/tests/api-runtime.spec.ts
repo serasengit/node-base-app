@@ -4,15 +4,24 @@ import { APICode, Language } from '@api-messages/api-messages';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import http from 'http';
+<<<<<<< HEAD
 import { afterEach, describe, it } from 'mocha';
 import { createRequire } from 'module';
+=======
+import { createRequire } from 'module';
+import { afterEach, describe, it } from 'mocha';
+>>>>>>> 528b90bf90558f8a6abbdc0a26dc5be35a3d8070
 import { Container } from 'typedi';
 
 chai.use(chaiHttp);
 
 const moduleRequire = createRequire(__filename);
 
+<<<<<<< HEAD
 type EnvMap = Record<string, string>;
+=======
+type EnvMap = Record<string, string | undefined>;
+>>>>>>> 528b90bf90558f8a6abbdc0a26dc5be35a3d8070
 
 const BASE_ENV: EnvMap = {
   NODE_ENV: 'test',
