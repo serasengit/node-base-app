@@ -28,6 +28,8 @@ export type AppConfig = {
     accessExpirationTime: string;
     refreshExpirationTime: string;
     refreshMaxInactiveTimeMs: number;
+    rateLimitWindowMs: number;
+    rateLimitMaxRequests: number;
   };
 
   // API documentation configuration.
@@ -225,7 +227,13 @@ export const appConfig: AppConfig = {
     refreshExpirationTime: readString('JWT_REFRESH_EXPIRATION_TIME', '7d'),
 
     // Maximum refresh cookie lifetime in milliseconds.
-    refreshMaxInactiveTimeMs: readInteger('JWT_MAX_INACTIVE_TIME', 1800000)
+    refreshMaxInactiveTimeMs: readInteger('JWT_MAX_INACTIVE_TIME', 1800000),
+
+    // Rolling auth rate limit window in milliseconds for login and refresh endpoints.
+    rateLimitWindowMs: readInteger('AUTH_RATE_LIMIT_WINDOW_MS', 60000),
+
+    // Maximum number of requests allowed per auth rate limit window.
+    rateLimitMaxRequests: readInteger('AUTH_RATE_LIMIT_MAX_REQUESTS', 10)
   },
 
   docs: {

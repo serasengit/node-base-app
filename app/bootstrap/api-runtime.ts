@@ -1,9 +1,10 @@
 import { appConfig } from '@bootstrap/config';
 import { errorHandler, notFoundHandler } from '@middlewares/error-handler';
 import { requestContextMiddleware } from '@middlewares/request-context';
+import { noStoreCacheHeaders, securityHeadersMiddleware } from '@middlewares/response-headers';
 import cookieParser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
-import express, { json, NextFunction, Request, Response } from 'express';
+import express, { json } from 'express';
 import http from 'http';
 import logger from 'logger/logger';
 import { createRequire } from 'module';
@@ -11,25 +12,6 @@ import { createRequire } from 'module';
 // Creates a CommonJS-compatible require function.
 // This is useful when dynamically loading modules from an ES module context.
 const loadModule = createRequire(__filename);
-
-/**
- * Applies strict cache prevention headers.
- *
- * This is appropriate for API responses that may contain sensitive,
- * user-specific, session-specific, or operational information.
- */
-const noStoreCacheHeaders = (_req: Request, res: Response, next: NextFunction): void => {
-  // Prevents browsers and shared proxies from storing API responses.
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, private');
-
-  // Provides backward-compatible cache prevention for HTTP/1.0 clients.
-  res.setHeader('Pragma', 'no-cache');
-
-  // Marks the response as immediately expired.
-  res.setHeader('Expires', '0');
-
-  next();
-};
 
 export const createApiApp = (): express.Express => {
   // Loads the API router dynamically to avoid early initialization issues.
@@ -43,6 +25,9 @@ export const createApiApp = (): express.Express => {
 
   // Prevent API responses from being cached by browsers, proxies, or shared caches.
   app.use(noStoreCacheHeaders);
+
+  // Applies common HTTP response hardening headers for API traffic.
+  app.use(securityHeadersMiddleware);
 
   // CORS configuration.
   const corsOptions: CorsOptions = {

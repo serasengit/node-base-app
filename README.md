@@ -248,6 +248,14 @@ environments/.env.dev
   Maximum inactivity window, in milliseconds, used when rotating refresh tokens.  
   Development value: `1800000`.
 
+- `AUTH_RATE_LIMIT_WINDOW_MS`  
+  Rolling time window, in milliseconds, applied to `POST /auth` and `POST /auth/refresh-token`.  
+  Development value: `60000`.
+
+- `AUTH_RATE_LIMIT_MAX_REQUESTS`  
+  Maximum number of requests allowed per client IP during each auth rate-limit window.  
+  Development value: `10`.
+
 #### 🐳 Docker
 
 - `DOCKER_IMAGE_NAME`  
@@ -506,6 +514,7 @@ Implemented pieces:
 5. Protected routes expect `Authorization: Bearer <accessToken>`.
 6. `POST /api/v1/auth/refresh-token` rotates the refresh token cookie and returns a new access token.
 7. `POST /api/v1/auth/logout` clears the refresh token cookie and ends the browser session.
+8. `POST /api/v1/auth` and `POST /api/v1/auth/refresh-token` are rate limited per client IP.
 
 ### Access token payload
 

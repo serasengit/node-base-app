@@ -19,6 +19,8 @@ const BASE_ENV: EnvMap = {
   JWT_ACCESS_EXPIRATION_TIME: '15m',
   JWT_REFRESH_EXPIRATION_TIME: '7d',
   JWT_MAX_INACTIVE_TIME: '1800000',
+  AUTH_RATE_LIMIT_WINDOW_MS: '60000',
+  AUTH_RATE_LIMIT_MAX_REQUESTS: '10',
   ENABLE_API_DOCS: 'true',
   LOG_LEVEL: 'debug',
   LOGS_FOLDER: 'logs/test',
@@ -67,7 +69,9 @@ describe('Bootstrap Config', () => {
       refreshSecretKey: 'refresh-secret',
       accessExpirationTime: '15m',
       refreshExpirationTime: '7d',
-      refreshMaxInactiveTimeMs: 1800000
+      refreshMaxInactiveTimeMs: 1800000,
+      rateLimitWindowMs: 60000,
+      rateLimitMaxRequests: 10
     });
     expect(appConfig.docs.enabled).to.equal(true);
     expect(appConfig.logging).to.deep.equal({

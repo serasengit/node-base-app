@@ -27,6 +27,8 @@ const BASE_ENV: EnvMap = {
   JWT_ACCESS_EXPIRATION_TIME: '15m',
   JWT_REFRESH_EXPIRATION_TIME: '7d',
   JWT_MAX_INACTIVE_TIME: '1800000',
+  AUTH_RATE_LIMIT_WINDOW_MS: '60000',
+  AUTH_RATE_LIMIT_MAX_REQUESTS: '10',
   ENABLE_API_DOCS: 'false',
   POSTGRES_USER: 'postgres',
   POSTGRES_DB: 'node_base_app_test',
@@ -78,6 +80,10 @@ describe('API Runtime Bootstrap', () => {
       expect(response).to.have.status(200);
       expect(response).to.have.header('x-request-id');
       expect(response).to.have.header('cache-control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      expect(response).to.have.header('x-content-type-options', 'nosniff');
+      expect(response).to.have.header('x-frame-options', 'DENY');
+      expect(response).to.have.header('referrer-policy', 'no-referrer');
+      expect(response).to.have.header('x-dns-prefetch-control', 'off');
       expect(response).to.not.have.header('x-powered-by');
       expect(response).to.have.header('access-control-allow-origin', 'https://frontend.local');
       expect(response.body).to.have.property('openapi', '3.0.3');

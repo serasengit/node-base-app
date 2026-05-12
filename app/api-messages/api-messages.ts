@@ -20,6 +20,7 @@ export enum APICode {
   RequiredToken = 'required_token',
   UnknownError = 'unknown_error',
   RequiredParameter = 'required_parameter',
+  TooManyRequests = 'too_many_requests',
   SessionExpired = 'session_expired',
   InvalidGrants = 'invalid_grants',
   InvalidAccessToken = 'invalid_access_token',
