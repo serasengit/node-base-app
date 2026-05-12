@@ -30,6 +30,9 @@ export async function seed(knex: Knex): Promise<void> {
       { code: 'required_parameter', language: 'en', text: 'Required parameter' },
       { code: 'required_parameter', language: 'es', text: 'Parámetro requerido' },
 
+      { code: 'too_many_requests', language: 'en', text: 'Too many requests' },
+      { code: 'too_many_requests', language: 'es', text: 'Demasiadas solicitudes' },
+
       // AUTH MESSAGES
       { code: 'required_token', language: 'en', text: 'Required token' },
       { code: 'required_token', language: 'es', text: 'Token requerido' },

@@ -374,7 +374,8 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
             requestBody: authRequestBody,
             responses: {
               200: response('Authentication succeeded.', '#/components/schemas/AuthResponse'),
-              403: response('Invalid credentials or inactive user.', '#/components/schemas/ApiError')
+              403: response('Invalid credentials or inactive user.', '#/components/schemas/ApiError'),
+              429: response('Too many authentication attempts. Try again later.', '#/components/schemas/ApiError')
             }
           },
           false,
@@ -388,7 +389,8 @@ export function buildOpenApiSpec(req: express.Request, routeMounts: ApiRouteMoun
             description: 'Rotates the refresh token cookie and returns a new access token.',
             responses: {
               200: response('Access token refreshed.', '#/components/schemas/RefreshTokenResponse'),
-              401: response('Refresh token is missing, invalid or expired.', '#/components/schemas/ApiError')
+              401: response('Refresh token is missing, invalid or expired.', '#/components/schemas/ApiError'),
+              429: response('Too many refresh attempts. Try again later.', '#/components/schemas/ApiError')
             }
           },
           false,
