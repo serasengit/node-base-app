@@ -136,21 +136,39 @@ Run seeds:
 npm run knex:seed:run --env=dev
 ```
 
-## 🐳 Docker Shortcuts
+### 🐳 Docker
 
-Start PostgreSQL in development:
+- `npm run dockerize --env=dev --service=app`  
+  Runs Docker Compose using `environments/.env.dev` and the selected profile.
+
+Internally, the command executed is:
+
+```bash
+docker compose --env-file environments/.env.%npm_config_env% --profile %npm_config_service% up --build -d
+```
+
+Common profiles may include:
+
+- `postgres`  
+  Starts only the PostgreSQL database.
+
+- `migrations`  
+  Runs database migrations.
+
+- `unit-tests`  
+  Runs the test container.
+
+- `app`  
+  Starts the main application stack.
+
+Database shortcuts:
 
 ```bash
 npm run db:dev
-```
-
-Start PostgreSQL in test:
-
-```bash
 npm run db:test
 ```
 
-Direct docker-compose wrapper:
+These commands are equivalent to:
 
 ```bash
 npm run dockerize --service=postgres --env=dev
