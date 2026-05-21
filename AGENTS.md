@@ -2,18 +2,11 @@
 
 ## 🎯 Purpose
 
-This repository is a TypeScript + Express backend skeleton organized by features and shared core layers.
+This file is for assistants and coding agents working inside the repository.
 
-Its main functional areas are:
+Use `README.md` and `docs/` for human onboarding. Use this file for operational rules, boundaries and edit guidance.
 
-- JWT authentication with refresh token rotation
-- RBAC authorization with modules, roles and grants
-- CRUD APIs for `users`, `cities` and `meteo-stations`
-- PostgreSQL persistence using Knex + Objection
-- OpenAPI generation and Swagger UI exposure
-- Integration-style API tests with Mocha + Chai
-
-## 🗂️ Project Structure
+## 🗂️ Architecture Boundaries
 
 - `app/bootstrap`: startup wiring and runtime configuration
 - `app/core`: reusable controllers, repositories, middlewares, route helpers and shared types
@@ -24,7 +17,9 @@ Its main functional areas are:
 - `db/*/seeds`: seed data per environment
 - `environments`: env files for `dev` and `test`
 
-## 🧩 Feature Pattern
+Keep feature code in `app/features`. Keep shared technical abstractions in `app/core`. Do not blur those boundaries without a concrete reason.
+
+## 🧩 Feature Rules
 
 Each feature should follow this structure when applicable:
 
@@ -36,13 +31,13 @@ Each feature should follow this structure when applicable:
 - `services`
 - `tests`
 
-Existing reference implementations:
+Reference implementations:
 
 - `app/features/cities`
 - `app/features/meteo-stations`
 - `app/features/users`
 
-## 🔌 Endpoint Pattern
+## 🔄 Endpoint Change Workflow
 
 When adding or modifying endpoints, follow this order:
 
@@ -51,18 +46,18 @@ When adding or modifying endpoints, follow this order:
 3. Add or update the controller method
 4. Add or update service logic
 5. Add or update repository queries if persistence changes
-6. Update DTO and schema mappings if response/request shape changes
+6. Update DTO and schema mappings if response or request shape changes
 7. Add or update tests
 8. Update `app/docs/openapi.ts` for public API changes
-9. Update `README.md` if the feature or behavior is externally relevant
+9. Update `README.md` or `docs/` if externally relevant behavior changed
 
 ## 🔐 Auth And RBAC Rules
 
-- Protected route groups are mounted in `app/core/routes/api-routes.ts`
-- Authentication uses `AuthMiddleware`
-- Authorization uses `GrantMiddleware`
+- protected route groups are mounted in `app/core/routes/api-routes.ts`
+- authentication uses `AuthMiddleware`
+- authorization uses `GrantMiddleware`
 - CRUD route protection maps to `GrantType.CanRead|CanCreate|CanEdit|CanDelete`
-- Module-level authorization must use `ModuleCode`
+- module-level authorization must use `ModuleCode`
 
 ## 🕵️ Audit Rules
 
@@ -81,50 +76,42 @@ Current resources using this pattern:
 
 ## ⚙️ Service Conventions
 
-- Services own business rules
-- Services start and manage transactions when multiple repository actions are involved
-- Services translate missing resources into `NotFoundError`
-- Services translate uniqueness collisions into `ConflictError`
-- Services should keep logging consistent with existing modules
+- services own business rules
+- services start and manage transactions when multiple repository actions are involved
+- services translate missing resources into `NotFoundError`
+- services translate uniqueness collisions into `ConflictError`
+- services should keep logging consistent with existing modules
 
 ## 🗄️ Repository Conventions
 
-- Repositories own query construction
-- Use `find`, `findById`, `save`, `update`, `delete` consistently when the resource is CRUD-based
-- Use `applyRelations`, `applyFilters` and `applyOrder` for list endpoints when needed
-- Keep relation includes explicit and validated at route-schema level
+- repositories own query construction
+- use `find`, `findById`, `save`, `update`, `delete` consistently when the resource is CRUD-based
+- use `applyRelations`, `applyFilters` and `applyOrder` for list endpoints when needed
+- keep relation includes explicit and validated at route-schema level
 
-## 🧪 Testing Conventions
+## 🧪 Testing Rules
 
-- Integration tests live next to the feature under `tests/*.spec.ts`
-- Use seeded users for authentication helpers
-- Use isolated test data with prefixes like `TEST_*`
-- Clean up inserted data in `afterEach`
-- Prefer verifying persisted DB state for create/update/delete flows
+- integration tests live next to the feature under `tests/*.spec.ts`
+- use seeded users for authentication helpers
+- use isolated test data with prefixes like `TEST_*`
+- clean up inserted data in `afterEach`
+- prefer verifying persisted DB state for create, update and delete flows
 
-## 📘 Documentation Conventions
+## 📘 Documentation Rules
 
-- Public endpoint changes should be reflected in `app/docs/openapi.ts`
-- README updates are required when:
-  - a new feature is exposed publicly
-  - environment variables change
-  - auth/RBAC behavior changes
-  - test/bootstrap setup changes
+When behavior changes, update the right document instead of growing `README.md` again:
 
-## 🛠️ Commands
-
-- Build: `npm.cmd run build`
-- Tests: `npm.cmd run test`
-- Coverage: `npm.cmd run test:coverage`
-- Dev DB: `npm.cmd run db:dev`
-- Test DB: `npm.cmd run db:test`
-- Migrations: `npm.cmd run knex:migrate:latest --env=dev`
-- Seeds: `npm.cmd run knex:seed:run --env=dev`
+- `README.md` for onboarding, execution, structure, testing and CI overview
+- `docs/setup.md` for environment and startup changes
+- `docs/architecture.md` for structure, auth or feature-pattern changes
+- `docs/testing.md` for test strategy or helper changes
+- `docs/ci-sonar.md` for CI, Sonar or ZAP changes
+- `docs/troubleshooting.md` for recurring operational issues
 
 ## 📌 Important Notes
 
 - `users` live in the `rbac` schema
 - `cities` and `meteo_stations` live in the `public` schema
 - OpenAPI is partially route-discovered and partially manually described
-- Avoid exposing password hashes in public responses
-- Keep Sonar and NYC exclusions aligned when changing coverage scope
+- avoid exposing password hashes in public responses
+- keep Sonar and NYC exclusions aligned when changing coverage scope
