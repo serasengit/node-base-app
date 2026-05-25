@@ -17,9 +17,16 @@ export async function seed(knex: Knex): Promise<void> {
   // Define all roles and their grants
   const rolesGrants: RoleGrants[] = [
     {
+      roleCode: 'system_administrator',
+      grants: [
+        { moduleCode: 'users', canRead: true, canCreate: true, canEdit: true, canDelete: true },
+        { moduleCode: 'cities', canRead: true, canCreate: true, canEdit: true, canDelete: true },
+        { moduleCode: 'meteo_stations', canRead: true, canCreate: true, canEdit: true, canDelete: true }
+      ]
+    },
+    {
       roleCode: 'read_only',
       grants: [
-        { moduleCode: 'users', canRead: true, canCreate: false, canEdit: false, canDelete: false },
         { moduleCode: 'cities', canRead: true, canCreate: false, canEdit: false, canDelete: false },
         { moduleCode: 'meteo_stations', canRead: true, canCreate: false, canEdit: false, canDelete: false }
       ]

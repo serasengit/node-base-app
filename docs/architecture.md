@@ -19,6 +19,38 @@ Database assets are environment-specific:
 - `db/test/migrations`
 - `db/test/seeds`
 
+## 🧰 Framework and libraries
+
+The application is built with:
+
+- Node.js as the runtime
+- Express for the HTTP API layer
+- TypeScript for the application language
+- PostgreSQL as the primary database
+
+Key libraries currently used in the project:
+
+- `express` for routing, middleware composition and HTTP handling
+- `express-validator` for request validation at route level
+- `objection` and `knex` for models, query building and migrations/seeds
+- `pg` for PostgreSQL connectivity
+- `typedi` and `reflect-metadata` for dependency injection
+- `jsonwebtoken` for access token handling
+- `cookie-parser` for refresh-token cookie support
+- `bcrypt` for password hashing
+- `dotenv` for environment-based runtime configuration
+- `winston` for application logging
+- `module-alias` and `tsconfig-paths` for path alias support in runtime and tests
+
+Key development and quality tools:
+
+- `mocha`, `chai` and `chai-http` for integration testing
+- `eslint` and `prettier` for linting and formatting
+- `nyc` for coverage reporting
+- `nodemon` and `ts-node` for local development flow
+
+Keep this section aligned with `package.json` when the stack changes.
+
 ## 🧩 Feature Structure
 
 CRUD-oriented features should follow this shape when applicable:
