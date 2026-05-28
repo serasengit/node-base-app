@@ -1,7 +1,7 @@
 import { APICode } from '@api-messages/api-messages';
 import { NoContentError } from '@api-messages/errors/no-content-error';
 import chai, { expect } from 'chai';
-import chaiHttp from 'chai-http';
+import chaiHttp, { request } from 'chai-http';
 import { knex, Knex } from 'knex';
 import { after, afterEach, before, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
@@ -125,7 +125,7 @@ describe('Meteo Stations API', function () {
 
   describe('GET /meteo-stations', () => {
     it('should list meteo stations', async () => {
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken);
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.have.property('total').that.is.a('number');
@@ -136,7 +136,7 @@ describe('Meteo Stations API', function () {
     it('should filter meteo stations by textSearch', async () => {
       const station = await insertTestStation({ name: uniqueStationName('SEARCHABLE') });
 
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ textSearch: station.name });
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken).query({ textSearch: station.name });
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body.records).to.be.an('array');
@@ -144,7 +144,7 @@ describe('Meteo Stations API', function () {
     });
 
     it('should return 422 when orderBy is invalid', async () => {
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
 
       expect(response).to.have.status(StatusCode.ClientErrorUnprocessableEntity);
       expect(response.body).to.have.property('code', APICode.ClientErrorUnprocessableEntity);
@@ -156,7 +156,7 @@ describe('Meteo Stations API', function () {
     it('should fetch one meteo station by id', async () => {
       const station = await getSeededStation();
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${station.id}`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${station.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -168,7 +168,7 @@ describe('Meteo Stations API', function () {
     it('should include relations when requested', async () => {
       const station = await getSeededStation();
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${station.id}`), accessToken).query({
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${station.id}`), accessToken).query({
         include: 'city'
       });
 
@@ -183,7 +183,7 @@ describe('Meteo Stations API', function () {
         updated_by_id: systemAdmin.id
       });
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${station.id}`), accessToken).query({
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${station.id}`), accessToken).query({
         include: 'createdBy,updatedBy'
       });
 
@@ -201,14 +201,14 @@ describe('Meteo Stations API', function () {
     });
 
     it('should return 422 when id is invalid', async () => {
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/invalid-id`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/invalid-id`), accessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorUnprocessableEntity);
       expect(response.body).to.have.property('code', APICode.ClientErrorUnprocessableEntity);
     });
 
     it('should return 404 when meteo station does not exist', async () => {
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/99999999`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/99999999`), accessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.MeteoStationNotFound);
@@ -224,7 +224,7 @@ describe('Meteo Stations API', function () {
         latitude: 42.12345678
       };
 
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send(payload);
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessCreated);
       expect(response.body).to.include({
@@ -241,7 +241,7 @@ describe('Meteo Stations API', function () {
     it('should return 409 when creating a duplicated meteo station name', async () => {
       const station = await getSeededStation();
 
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send({
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send({
         name: station.name,
         longitude: -2.5,
         latitude: 41.9
@@ -252,7 +252,7 @@ describe('Meteo Stations API', function () {
     });
 
     it('should return 422 when payload is invalid', async () => {
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send({
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send({
         name: '',
         longitude: 500,
         latitude: 'invalid'
@@ -274,7 +274,7 @@ describe('Meteo Stations API', function () {
         latitude: 51.5072
       };
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${station.id}`), accessToken).send(payload);
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${station.id}`), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -289,7 +289,7 @@ describe('Meteo Stations API', function () {
     });
 
     it('should return 404 when updating a non existing meteo station', async () => {
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
         name: uniqueStationName('MISSING'),
         longitude: 1.1,
         latitude: 2.2
@@ -303,7 +303,7 @@ describe('Meteo Stations API', function () {
       const seeded = await getSeededStation();
       const station = await insertTestStation();
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${station.id}`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${station.id}`), accessToken).send({
         name: seeded.name,
         longitude: station.longitude,
         latitude: station.latitude
@@ -316,7 +316,7 @@ describe('Meteo Stations API', function () {
     it('should reject read-only users when updating a meteo station', async () => {
       const station = await insertTestStation();
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${station.id}`), readonlyAccessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${station.id}`), readonlyAccessToken).send({
         name: station.name,
         longitude: station.longitude,
         latitude: station.latitude
@@ -331,7 +331,7 @@ describe('Meteo Stations API', function () {
     it('should delete a meteo station', async () => {
       const station = await insertTestStation();
 
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${station.id}`), accessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/${station.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessNoContent);
 
@@ -340,7 +340,7 @@ describe('Meteo Stations API', function () {
     });
 
     it('should return 404 when deleting a non existing meteo station', async () => {
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/99999999`), accessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/99999999`), accessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.MeteoStationNotFound);
@@ -349,7 +349,7 @@ describe('Meteo Stations API', function () {
     it('should reject read-only users when deleting a meteo station', async () => {
       const station = await insertTestStation();
 
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${station.id}`), readonlyAccessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/${station.id}`), readonlyAccessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorForbidden);
       expect(response.body).to.have.property('code', APICode.InvalidGrants);

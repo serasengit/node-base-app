@@ -2,7 +2,7 @@ import 'reflect-metadata';
 
 import { APICode, Language } from '@api-messages/api-messages';
 import chai, { expect } from 'chai';
-import chaiHttp from 'chai-http';
+import chaiHttp, { request } from 'chai-http';
 import http from 'http';
 import { afterEach, describe, it } from 'mocha';
 import { createRequire } from 'module';
@@ -75,7 +75,7 @@ describe('API Runtime Bootstrap', () => {
   it('should expose docs in non-production environments and apply runtime headers', async () =>
     withFreshRuntime({}, async ({ createApiApp }) => {
       const app = createApiApp();
-      const response = await chai.request(app).get('/api/v1/openapi.json').set('Origin', 'https://frontend.local');
+      const response = await request.execute(app).get('/api/v1/openapi.json').set('Origin', 'https://frontend.local');
 
       expect(response).to.have.status(200);
       expect(response).to.have.header('x-request-id');
@@ -96,7 +96,7 @@ describe('API Runtime Bootstrap', () => {
       },
       async ({ createApiApp }) => {
         const app = createApiApp();
-        const response = await chai.request(app).get('/api/v1/openapi.json').set('Origin', 'https://allowed.example.com');
+        const response = await request.execute(app).get('/api/v1/openapi.json').set('Origin', 'https://allowed.example.com');
 
         expect(response).to.have.status(200);
         expect(response).to.have.header('access-control-allow-origin', 'https://allowed.example.com');
@@ -117,7 +117,7 @@ describe('API Runtime Bootstrap', () => {
             `translated:${language}:${code}`
         })) as typeof Container.get;
 
-        const response = await chai.request(app).get('/api/v1/openapi.json');
+        const response = await request.execute(app).get('/api/v1/openapi.json');
 
         expect(response).to.have.status(404);
         expect(response.body).to.deep.include({
@@ -136,7 +136,7 @@ describe('API Runtime Bootstrap', () => {
       },
       async ({ createApiApp }) => {
         const app = createApiApp();
-        const response = await chai.request(app).get('/api/v1/docs');
+        const response = await request.execute(app).get('/api/v1/docs');
 
         expect(response).to.have.status(200);
         expect(response.text).to.include('SwaggerUIBundle');
@@ -146,7 +146,7 @@ describe('API Runtime Bootstrap', () => {
   it('should build the healthcheck app with the expected payload', async () =>
     withFreshRuntime({}, async ({ createHealthcheckApp }) => {
       const app = createHealthcheckApp();
-      const response = await chai.request(app).get('/health');
+      const response = await request.execute(app).get('/health');
 
       expect(response).to.have.status(200);
       expect(response.body).to.have.property('status', 'ok');

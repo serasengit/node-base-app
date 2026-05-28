@@ -1,11 +1,11 @@
 import { APICode, Language } from '@api-messages/api-messages';
-import { appConfig } from '@bootstrap/config';
-import { resetRateLimitStore } from '@middlewares/rate-limit';
 import { UnauthorizedError } from '@api-messages/errors/unauthorized-error';
+import { appConfig } from '@bootstrap/config';
 import { getBearerTokenFromAuthHeader, toAccessTokenPayload, toRefreshTokenPayload } from '@features/auth/dtos/auth-dto';
 import { RoleCode } from '@features/roles/schemas/role-schema';
+import { resetRateLimitStore } from '@middlewares/rate-limit';
 import chai, { expect } from 'chai';
-import chaiHttp from 'chai-http';
+import chaiHttp, { request } from 'chai-http';
 import { afterEach, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
 import app from '../../../../server';
@@ -28,7 +28,7 @@ const defaultAuthRateLimitWindowMs = appConfig.auth.rateLimitWindowMs;
 const defaultAuthRateLimitMaxRequests = appConfig.auth.rateLimitMaxRequests;
 
 async function login(username: string, password: string): Promise<string> {
-  const response = await chai.request(app).post(AUTH_ENDPOINT).send({ username, password });
+  const response = await request.execute(app).post(AUTH_ENDPOINT).send({ username, password });
 
   expect(response).to.have.status(StatusCode.SuccessOK);
   expect(response.body).to.have.property('accessToken').that.is.a('string');
@@ -175,7 +175,7 @@ describe('Authentication API', function () {
 
   describe('POST /auth', () => {
     it('should authenticate the seeded system administrator', async () => {
-      const response = await chai.request(app).post(AUTH_ENDPOINT).send({
+      const response = await request.execute(app).post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
         password: TEST_SYSTEM_ADMIN_PASSWORD
       });
@@ -193,7 +193,7 @@ describe('Authentication API', function () {
     });
 
     it('should reject invalid credentials', async () => {
-      const response = await chai.request(app).post(AUTH_ENDPOINT).send({
+      const response = await request.execute(app).post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
         password: 'wrong-password'
       });
@@ -207,17 +207,17 @@ describe('Authentication API', function () {
       appConfig.auth.rateLimitWindowMs = 60000;
       resetRateLimitStore();
 
-      await chai.request(app).post(AUTH_ENDPOINT).send({
+      await request.execute(app).post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
         password: 'wrong-password'
       });
 
-      await chai.request(app).post(AUTH_ENDPOINT).send({
+      await request.execute(app).post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
         password: 'wrong-password'
       });
 
-      const response = await chai.request(app).post(AUTH_ENDPOINT).send({
+      const response = await request.execute(app).post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
         password: 'wrong-password'
       });
@@ -230,7 +230,7 @@ describe('Authentication API', function () {
 
   describe('POST /auth/refresh-token', () => {
     it('should refresh the access token using the refresh token cookie', async () => {
-      const agent = chai.request.agent(app);
+      const agent = request.agent(app);
 
       const loginResponse = await agent.post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
@@ -253,7 +253,7 @@ describe('Authentication API', function () {
       appConfig.auth.rateLimitWindowMs = 60000;
       resetRateLimitStore();
 
-      const agent = chai.request.agent(app);
+      const agent = request.agent(app);
 
       const loginResponse = await agent.post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
@@ -276,7 +276,7 @@ describe('Authentication API', function () {
 
   describe('POST /auth/logout', () => {
     it('should clear the refresh token cookie and prevent further refresh attempts', async () => {
-      const agent = chai.request.agent(app);
+      const agent = request.agent(app);
 
       const loginResponse = await agent.post(AUTH_ENDPOINT).send({
         username: TEST_SYSTEM_ADMIN_USERNAME,
@@ -303,14 +303,14 @@ describe('Authentication API', function () {
 
   describe('Protected routes', () => {
     it('should reject requests without an access token', async () => {
-      const response = await chai.request(app).get(CITIES_ENDPOINT);
+      const response = await request.execute(app).get(CITIES_ENDPOINT);
 
       expect(response).to.have.status(StatusCode.ClientErrorUnauthorized);
       expect(response.body).to.have.property('code', APICode.RequiredToken);
     });
 
     it('should reject requests with an invalid access token', async () => {
-      const response = await withBearerToken(chai.request(app).get(CITIES_ENDPOINT), 'invalid-token');
+      const response = await withBearerToken(request.execute(app).get(CITIES_ENDPOINT), 'invalid-token');
 
       expect(response).to.have.status(StatusCode.ClientErrorUnauthorized);
       expect(response.body).to.have.property('code', APICode.InvalidAccessToken);
@@ -318,7 +318,7 @@ describe('Authentication API', function () {
 
     it('should allow requests with a valid access token', async () => {
       const accessToken = await login(TEST_SYSTEM_ADMIN_USERNAME, TEST_SYSTEM_ADMIN_PASSWORD);
-      const response = await withBearerToken(chai.request(app).get(CITIES_ENDPOINT), accessToken);
+      const response = await withBearerToken(request.execute(app).get(CITIES_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.have.property('records').that.is.an('array');
@@ -326,7 +326,7 @@ describe('Authentication API', function () {
 
     it('should allow read-only users to access routes with read grants', async () => {
       const accessToken = await login(TEST_READONLY_USERNAME, TEST_READONLY_PASSWORD);
-      const response = await withBearerToken(chai.request(app).get(CITIES_ENDPOINT), accessToken);
+      const response = await withBearerToken(request.execute(app).get(CITIES_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.have.property('records').that.is.an('array');
@@ -334,7 +334,7 @@ describe('Authentication API', function () {
 
     it('should reject read-only users on routes without the required grants', async () => {
       const accessToken = await login(TEST_READONLY_USERNAME, TEST_READONLY_PASSWORD);
-      const response = await withBearerToken(chai.request(app).post(CITIES_ENDPOINT), accessToken).send({
+      const response = await withBearerToken(request.execute(app).post(CITIES_ENDPOINT), accessToken).send({
         name: uniqueCityName('FORBIDDEN'),
         province: 'Madrid',
         country: 'Spain'

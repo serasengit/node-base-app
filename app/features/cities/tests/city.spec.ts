@@ -1,7 +1,7 @@
 import { APICode } from '@api-messages/api-messages';
 import { BadRequestError } from '@api-messages/errors/bad-request-error';
 import chai, { expect } from 'chai';
-import chaiHttp from 'chai-http';
+import chaiHttp, { request } from 'chai-http';
 import { knex, Knex } from 'knex';
 import { after, afterEach, before, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
@@ -119,7 +119,7 @@ describe('Cities API', function () {
 
   describe('GET /cities', () => {
     it('should list cities', async () => {
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken);
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.have.property('total').that.is.a('number');
@@ -130,14 +130,14 @@ describe('Cities API', function () {
     it('should filter cities by textSearch', async () => {
       const city = await insertTestCity({ name: uniqueCityName('SEARCHABLE') });
 
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ textSearch: city.name });
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken).query({ textSearch: city.name });
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body.records.some((record) => record.id === city.id)).to.equal(true);
     });
 
     it('should return 422 when orderBy is invalid', async () => {
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
 
       expect(response).to.have.status(StatusCode.ClientErrorUnprocessableEntity);
       expect(response.body).to.have.property('code', APICode.ClientErrorUnprocessableEntity);
@@ -148,7 +148,7 @@ describe('Cities API', function () {
     it('should fetch one city by id', async () => {
       const city = await getSeededCity();
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${city.id}`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${city.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -162,7 +162,7 @@ describe('Cities API', function () {
       const city = await insertTestCity();
       await insertTestMeteoStation(city.id);
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${city.id}`), accessToken).query({
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${city.id}`), accessToken).query({
         include: 'meteoStations'
       });
 
@@ -178,7 +178,7 @@ describe('Cities API', function () {
         updated_by_id: systemAdmin.id
       });
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${city.id}`), accessToken).query({
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${city.id}`), accessToken).query({
         include: 'createdBy,updatedBy'
       });
 
@@ -196,7 +196,7 @@ describe('Cities API', function () {
     });
 
     it('should return 404 when city does not exist', async () => {
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/99999999`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/99999999`), accessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.CityNotFound);
@@ -212,7 +212,7 @@ describe('Cities API', function () {
         country: 'Spain'
       };
 
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send(payload);
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessCreated);
       expect(response.body).to.include(payload);
@@ -226,7 +226,7 @@ describe('Cities API', function () {
     it('should return 409 when creating a duplicated city', async () => {
       const city = await insertTestCity();
 
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send({
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send({
         name: city.name,
         province: city.province,
         country: city.country
@@ -247,7 +247,7 @@ describe('Cities API', function () {
         country: 'Spain'
       };
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${city.id}`), accessToken).send(payload);
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${city.id}`), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -260,7 +260,7 @@ describe('Cities API', function () {
     });
 
     it('should return 404 when updating a non existing city', async () => {
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
         name: uniqueCityName('MISSING'),
         province: 'Madrid',
         country: 'Spain'
@@ -273,7 +273,7 @@ describe('Cities API', function () {
     it('should reject read-only users when updating a city', async () => {
       const city = await insertTestCity();
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${city.id}`), readonlyAccessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${city.id}`), readonlyAccessToken).send({
         name: city.name,
         province: city.province,
         country: city.country
@@ -288,7 +288,7 @@ describe('Cities API', function () {
     it('should delete a city', async () => {
       const city = await insertTestCity();
 
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${city.id}`), accessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/${city.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessNoContent);
 
@@ -299,7 +299,7 @@ describe('Cities API', function () {
     it('should reject read-only users when deleting a city', async () => {
       const city = await insertTestCity();
 
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${city.id}`), readonlyAccessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/${city.id}`), readonlyAccessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorForbidden);
       expect(response.body).to.have.property('code', APICode.InvalidGrants);

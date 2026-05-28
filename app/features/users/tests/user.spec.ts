@@ -1,6 +1,6 @@
 import { APICode } from '@api-messages/api-messages';
 import chai, { expect } from 'chai';
-import chaiHttp from 'chai-http';
+import chaiHttp, { request } from 'chai-http';
 import { knex, Knex } from 'knex';
 import { after, afterEach, before, describe, it } from 'mocha';
 import StatusCode from 'status-code-enum';
@@ -128,7 +128,7 @@ describe('Users API', function () {
 
   describe('GET /users', () => {
     it('should list users', async () => {
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken);
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.have.property('total').that.is.a('number');
@@ -140,14 +140,14 @@ describe('Users API', function () {
     it('should filter users by textSearch', async () => {
       const user = await insertTestUser({ name: 'Searchable Test User' });
 
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ textSearch: user.name });
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken).query({ textSearch: user.name });
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body.records.some((record) => record.id === user.id)).to.equal(true);
     });
 
     it('should return 422 when orderBy is invalid', async () => {
-      const response = await withBearerToken(chai.request(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
+      const response = await withBearerToken(request.execute(app).get(API_ENDPOINT), accessToken).query({ orderBy: 'invalidColumn' });
 
       expect(response).to.have.status(StatusCode.ClientErrorUnprocessableEntity);
       expect(response.body).to.have.property('code', APICode.ClientErrorUnprocessableEntity);
@@ -158,7 +158,7 @@ describe('Users API', function () {
     it('should fetch one user by id', async () => {
       const user = await getSeededUser();
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${user.id}`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${user.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -178,7 +178,7 @@ describe('Users API', function () {
         updated_by_id: systemAdmin.id
       });
 
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/${user.id}`), accessToken).query({
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/${user.id}`), accessToken).query({
         include: 'role,createdBy,updatedBy'
       });
 
@@ -201,7 +201,7 @@ describe('Users API', function () {
     });
 
     it('should return 404 when user does not exist', async () => {
-      const response = await withBearerToken(chai.request(app).get(`${API_ENDPOINT}/99999999`), accessToken);
+      const response = await withBearerToken(request.execute(app).get(`${API_ENDPOINT}/99999999`), accessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorNotFound);
       expect(response.body).to.have.property('code', APICode.UserNotFound);
@@ -223,7 +223,7 @@ describe('Users API', function () {
         isActive: true
       };
 
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send(payload);
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessCreated);
       expect(response.body).to.include({
@@ -246,7 +246,7 @@ describe('Users API', function () {
       const existingUser = await getSeededUser();
       const readonlyRole = await getRoleByCode('read_only');
 
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send({
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send({
         username: existingUser.username,
         password: 'UserPass123!',
         nif: uniqueNif(),
@@ -262,7 +262,7 @@ describe('Users API', function () {
     });
 
     it('should return 404 when creating a user with a non existing role', async () => {
-      const response = await withBearerToken(chai.request(app).post(API_ENDPOINT), accessToken).send({
+      const response = await withBearerToken(request.execute(app).post(API_ENDPOINT), accessToken).send({
         username: uniqueUsername('INVALID_ROLE'),
         password: 'UserPass123!',
         nif: uniqueNif(),
@@ -288,7 +288,7 @@ describe('Users API', function () {
         email: uniqueEmail('same_info')
       });
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${user.id}`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${user.id}`), accessToken).send({
         username: user.username,
         nif: user.nif,
         name: user.name,
@@ -328,7 +328,7 @@ describe('Users API', function () {
         isActive: false
       };
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${user.id}`), accessToken).send(payload);
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${user.id}`), accessToken).send(payload);
 
       expect(response).to.have.status(StatusCode.SuccessOK);
       expect(response.body).to.include({
@@ -350,7 +350,7 @@ describe('Users API', function () {
     it('should return 404 when updating a user with a non existing role', async () => {
       const user = await insertTestUser();
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${user.id}`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${user.id}`), accessToken).send({
         username: uniqueUsername('MISSING_ROLE'),
         password: 'UserPass123!',
         nif: uniqueNif(),
@@ -369,7 +369,7 @@ describe('Users API', function () {
       const systemAdmin = await getSystemAdminUser();
       const readonlyRole = await getRoleByCode('read_only');
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${systemAdmin.id}`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${systemAdmin.id}`), accessToken).send({
         username: systemAdmin.username,
         nif: systemAdmin.nif,
         name: systemAdmin.name,
@@ -386,7 +386,7 @@ describe('Users API', function () {
     it('should return 404 when updating a non existing user', async () => {
       const readonlyRole = await getRoleByCode('read_only');
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/99999999`), accessToken).send({
         username: uniqueUsername('MISSING'),
         password: 'UserPass123!',
         nif: uniqueNif(),
@@ -404,7 +404,7 @@ describe('Users API', function () {
     it('should reject read-only users when updating a user', async () => {
       const user = await insertTestUser();
 
-      const response = await withBearerToken(chai.request(app).put(`${API_ENDPOINT}/${user.id}`), readonlyAccessToken).send({
+      const response = await withBearerToken(request.execute(app).put(`${API_ENDPOINT}/${user.id}`), readonlyAccessToken).send({
         username: user.username,
         nif: user.nif,
         name: user.name,
@@ -423,7 +423,7 @@ describe('Users API', function () {
     it('should delete a user', async () => {
       const user = await insertTestUser();
 
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${user.id}`), accessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/${user.id}`), accessToken);
 
       expect(response).to.have.status(StatusCode.SuccessNoContent);
 
@@ -434,7 +434,7 @@ describe('Users API', function () {
     it('should reject read-only users when deleting a user', async () => {
       const user = await insertTestUser();
 
-      const response = await withBearerToken(chai.request(app).delete(`${API_ENDPOINT}/${user.id}`), readonlyAccessToken);
+      const response = await withBearerToken(request.execute(app).delete(`${API_ENDPOINT}/${user.id}`), readonlyAccessToken);
 
       expect(response).to.have.status(StatusCode.ClientErrorForbidden);
       expect(response.body).to.have.property('code', APICode.InvalidGrants);
