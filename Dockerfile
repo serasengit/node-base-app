@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 FROM base AS dependencies
 
 COPY package*.json ./
-COPY tsconfig.json server.ts knexfile.ts .eslintrc.json .eslintignore .prettierrc ./
+COPY tsconfig.json server.ts knexfile.ts .eslintrc.json eslint.config.js .prettierrc ./
 
 COPY app ./app
 COPY db ./db

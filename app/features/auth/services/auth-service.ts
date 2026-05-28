@@ -111,8 +111,9 @@ class AuthService {
       username: user.username,
       name: user.name,
       language: user.language,
-      role: user.role
-        ? {
+      role:
+        user.role ?
+          {
             id: user.role.id,
             code: user.role.code as AccessTokenPayload['roleCode'],
             description: user.role.description

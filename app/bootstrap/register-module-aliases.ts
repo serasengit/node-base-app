@@ -1,4 +1,4 @@
-import moduleAlias = require('module-alias');
+import * as moduleAlias from 'module-alias';
 import path from 'path';
 
 const appRoot = path.join(__dirname, '..');

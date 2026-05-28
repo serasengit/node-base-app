@@ -90,8 +90,8 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
   public async update(trx: Transaction, meteoStationSchema: MeteoStationSchema, withCascade = false): Promise<MeteoStationSchema> {
     const query = MeteoStationSchema.query(trx);
 
-    return withCascade
-      ? await query.upsertGraphAndFetch(meteoStationSchema)
+    return withCascade ?
+        await query.upsertGraphAndFetch(meteoStationSchema)
       : await query.patchAndFetchById(meteoStationSchema.id, meteoStationSchema);
   }
 
@@ -99,8 +99,8 @@ export class MeteoStationRepositoryImpl implements MeteoStationRepository {
    * Creates or updates a meteo station depending on whether it has an ID.
    */
   public async upsert(trx: Transaction, meteoStationSchema: MeteoStationSchema, withCascade = false): Promise<MeteoStationSchema> {
-    return meteoStationSchema.id
-      ? await this.update(trx, meteoStationSchema, withCascade)
+    return meteoStationSchema.id ?
+        await this.update(trx, meteoStationSchema, withCascade)
       : await this.save(trx, meteoStationSchema, withCascade);
   }
 

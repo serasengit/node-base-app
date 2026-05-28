@@ -86,8 +86,9 @@ const logger: Logger = createLogger({
 // In non-production environments, enable colorized log levels for readability.
 logger.add(
   new transports.Console({
-    format: appConfig.isProduction
-      ? combine(requestContextFormat(), baseFormat)
+    format:
+      appConfig.isProduction ?
+        combine(requestContextFormat(), baseFormat)
       : combine(requestContextFormat(), colorize(), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), errors({ stack: true }), logFormat)
   })
 );
