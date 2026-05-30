@@ -26,7 +26,7 @@
     "sonar": "sonar-scanner"
   },
   "author": "sasensio",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

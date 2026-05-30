@@ -47,6 +47,8 @@ Important variable groups:
 
 Test-only helpers in `environments/.env.test`:
 
+These values are intended only for local/integration testing and should remain disposable example credentials.
+
 - `TEST_SYSTEM_ADMIN_USERNAME`
 - `TEST_SYSTEM_ADMIN_PASSWORD`
 - `TEST_READONLY_USERNAME`
@@ -73,6 +75,8 @@ npm run knex:seed:run --env=dev
 ```
 
 Default seeded users:
+
+Development-only example credentials for local/dev/test environments. Do not reuse them in shared or production environments.
 
 - `system_admin / Admin123!`
 - `readonly / Readonly123!`

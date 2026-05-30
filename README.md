@@ -47,6 +47,8 @@ Useful local URLs:
 
 Default seeded development users:
 
+Development-only example credentials for local/dev/test environments. Do not reuse them in shared or production environments.
+
 - `system_admin / Admin123!`
 - `readonly / Readonly123!`
 
@@ -127,4 +129,5 @@ Common CI variables:
 - `users` live in the `rbac` schema.
 - `cities` and `meteo_stations` live in the `public` schema.
 - Public API documentation depends on `ENABLE_API_DOCS=true`.
+- `environments/.env.test` contains local test-only JWT values and seed credentials meant for disposable environments.
 - `cities`, `meteo-stations` and `users` are good reference features when creating new modules.
